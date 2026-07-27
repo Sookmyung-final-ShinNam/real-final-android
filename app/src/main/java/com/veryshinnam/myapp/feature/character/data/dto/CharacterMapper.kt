@@ -25,7 +25,15 @@ fun CharacterDetailResult.toStoriesData(): StoriesData =
         title = storyTitle,
         imageUrl = ImageType.Url(imageStoryUrl), // 기본값
         imageYLink = imageYoutubeLink,
-        videoStatus = VideoStatus.valueOf(videoStatus),
+        videoStatus = videoStatus.toVideoStatus(),
         videoUrl = videoStoryUrl,
         videoYLink = videoYoutubeLink
     )
+
+private fun String.toVideoStatus(): VideoStatus =
+    when (this) {
+        "NONE" -> VideoStatus.NONE
+        "VIDEO_COMPLETED" -> VideoStatus.COMPLETED
+        "COMPLETED" -> VideoStatus.COMPLETED // 기존 응답 (다음 업데이트에서 삭제)
+        else -> VideoStatus.MAKING // "VIDEO_MAKING", "VIDEO_FAILED" 처리
+    }

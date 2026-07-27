@@ -41,7 +41,7 @@ import com.veryshinnam.myapp.feature.story.model.StoryType
 fun StoryInfoFade(
     story: StoryData,
     storyType: StoryType,
-    titleTextStyle: TextStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+    titleTextStyle: TextStyle = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
     tagTextStyle: TextStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
     descTextStyle: TextStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
     modifier: Modifier
@@ -85,6 +85,7 @@ fun StoryInfoFade(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxSize()
+                .background(color = colorResource(R.color.main_orange))
                 .padding(vertical = 20.dp, horizontal = 16.dp)
                 .semantics {
                     contentDescription = when (storyType) {
