@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -125,7 +126,8 @@ fun StoryReaderPage(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(WindowInsets.navigationBars.asPaddingValues())
+                    .navigationBarsPadding()
+                    .padding(end = 8.dp)
                     .semantics {
                         isTraversalGroup = true
                     },
