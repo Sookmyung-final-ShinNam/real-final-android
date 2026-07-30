@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,6 +41,7 @@ import coil.compose.AsyncImage
 import com.veryshinnam.myapp.R
 import com.veryshinnam.myapp.common.component.CircleIconButton
 import com.veryshinnam.myapp.common.component.VideoPlayer
+import com.veryshinnam.myapp.common.component.Watermark
 import com.veryshinnam.myapp.feature.story.model.PageData
 import com.veryshinnam.myapp.feature.story.model.StoryType
 import kotlinx.coroutines.CoroutineScope
@@ -57,14 +59,22 @@ fun StoryReaderPage(
     textStyle: TextStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center),
     onEndingPage: () -> Unit
 ) {
+    val pageDescription = if (pageNum == 3) {
+        "마지막 페이지"
+    } else {
+        "${pageNum + 1} 페이지"
+    }
+
+    val aiDescription = when (storyType) {
+        StoryType.IMAGE -> "AI로 생성된 이미지입니다."
+        StoryType.VIDEO -> "AI로 생성된 영상입니다."
+    }
+
     Box(Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .semantics(true) {
-                    contentDescription = when (pageNum) {
-                        3 -> "마지막 페이지"
-                        else -> "${pageNum + 1} 페이지"
-                    }
+                    contentDescription = "$pageDescription. $aiDescription"
                 }
         ) {
             when (storyType) {
@@ -76,6 +86,15 @@ fun StoryReaderPage(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
+
+                    // 워터마크
+                    Watermark(
+                        text = "AI로 생성된 이미지",
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .fillMaxHeight(0.06f)
+                            .align(Alignment.BottomStart)
+                    )
                 }
 
                 // 페이지 영상
@@ -83,6 +102,15 @@ fun StoryReaderPage(
                     VideoPlayer(
                         videoUrl = page.url,
                         modifier = Modifier.fillMaxSize().clearAndSetSemantics { }
+                    )
+
+                    // 워터마크
+                    Watermark(
+                        text = "AI로 생성된 영상",
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .fillMaxHeight(0.06f)
+                            .align(Alignment.BottomStart)
                     )
                 }
             }
@@ -92,13 +120,14 @@ fun StoryReaderPage(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = horizontalPadding/2, start = horizontalPadding/2)
+                .padding(bottom = 20.dp, start = horizontalPadding/2)
                 .align(Alignment.BottomCenter)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(WindowInsets.navigationBars.asPaddingValues())
+                    .navigationBarsPadding()
+                    .padding(end = 8.dp)
                     .semantics {
                         isTraversalGroup = true
                     },

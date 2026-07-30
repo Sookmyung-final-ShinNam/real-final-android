@@ -25,8 +25,8 @@ class CharacterRepositoryImpl @Inject constructor(
         if (!response.isSuccess || response.result == null) {
             throw Exception("캐릭터 전체 조회 실패: ${response.message}")
         }
-//        return response.result.characters.map { it.toCollectionData() }
-        return response.result.characters.mapNotNull  { it.toCollectionData() }
+//        return response.result.characters.map { it.toCollectionData() } // 스토리 미완성 캐릭터도 조회 가능
+        return response.result.characters.mapNotNull  { it.toCollectionData() } // 스토리 완성된 캐릭터만 조회 가능
     }
 
     // 캐릭터 상세 조회
@@ -46,7 +46,6 @@ class CharacterRepositoryImpl @Inject constructor(
         if (!response.isSuccess || response.result == null) {
             throw Exception(" 캐릭터 스토리 조회 실패: ${response.message}")
         }
-
         return response.result.toStoriesData()
     }
 

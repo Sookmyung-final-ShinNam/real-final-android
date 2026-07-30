@@ -49,7 +49,7 @@ fun DashboardParentCard(
 ) {
     var helpPressed by remember { mutableStateOf(false) }
     val helpText = """
-        아이가 최근에 만든 동화 5개에 담긴 이야기 표현과 감정 흐름을 바탕으로, 부모님께 전해드리는 작은 조언이에요!
+        아이가 최근에 만든 동화 5개에 담긴 이야기 표현과 감정 흐름을 AI가 살펴보고, 부모님께 전해드리는 작은 조언이에요!
     """.trimIndent()
 
     Column(

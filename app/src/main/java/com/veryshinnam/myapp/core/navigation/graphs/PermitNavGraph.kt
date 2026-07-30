@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import com.veryshinnam.myapp.core.navigation.routes.MainRoutes
 import com.veryshinnam.myapp.core.navigation.routes.PermitRoutes
 import com.veryshinnam.myapp.feature.permit.ui.LoginScreen
 import com.veryshinnam.myapp.feature.permit.ui.SignUpScreen
@@ -27,9 +28,15 @@ fun NavGraphBuilder.permitNavGraph(
                         launchSingleTop = true // 이미 login 있으면 재사용
                     }
                 },
+                onAdmin = {
+                    navController.navigate(MainRoutes.ADMIN) {
+                        popUpTo(NavGraphs.PERMIT) { inclusive = true } // 인증 그래프 제거
+                        launchSingleTop = true // 이미 admin 있으면 재사용
+                    }
+                },
                 onHome = {
                     navController.navigate(NavGraphs.MAIN) {
-                        popUpTo(PermitRoutes.SPLASH) { inclusive = true } // 스플래시 백스택 제거
+                        popUpTo(NavGraphs.PERMIT) { inclusive = true } // 스플래시 백스택 제거
                         launchSingleTop = true // 이미 home 있으면 재사용
                     }
                 }
@@ -45,6 +52,12 @@ fun NavGraphBuilder.permitNavGraph(
                     navController.navigate(NavGraphs.MAIN) {
                         popUpTo(NavGraphs.PERMIT) { inclusive = true } // 스플래시 백스택 제거
                         launchSingleTop = true // 이미 home 있으면 재사용
+                    }
+                },
+                onAdmin = {
+                    navController.navigate(MainRoutes.ADMIN) {
+                        popUpTo(NavGraphs.PERMIT) { inclusive = true } // 인증 그래프 제거
+                        launchSingleTop = true // 이미 admin 있으면 재사용
                     }
                 }
             )

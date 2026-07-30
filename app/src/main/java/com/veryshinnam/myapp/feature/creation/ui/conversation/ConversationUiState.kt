@@ -11,11 +11,11 @@ sealed interface ConversationUiState {
 
     data class Success(
         val sessionId: Long,
-        val nextStory: String,
+        val story: String,
         val questionData: QuestionData,
         val answerData: AnswerData,
         val feedbackData: FeedbackData,
-        val conversationStep: ConversationStep,
-        val loopStep: Int = 1
+        val conversationStep: ConversationStep, // ui 화면 분기용
+        val loopStep: Int = 1 // 1=기, 2=승, 3=전, 4=결
     ) : ConversationUiState
 }

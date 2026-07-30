@@ -38,14 +38,16 @@ import com.veryshinnam.myapp.feature.permit.content.LoginKakaoContent
 
 /**
  * 로그인 화면
- * : 로그인 초기 화면으로, 하단 카카오 로그인 버튼 누르면 카카오 로그인(LoginKakaoContent) 진행
+ * : 토큰 만료 시 초기 화면으로, 하단 카카오 로그인 버튼 누르면 카카오 로그인(LoginKakaoContent) 진행
  *
  * - onHome: 기존 유저 > 홈 화면(HomeScreen)으로 이동
+ * - onAdmin: 기존 관리자 > 관리자 화면(AdminScreen)으로 이동
  * - onSignup: 신규 유저 > 회원가입 화면(SignUpScreen)으로 이동
  */
 @Composable
 fun LoginScreen(
     onHome: () -> Unit,
+    onAdmin: () -> Unit,
     onSignup: (String) -> Unit, // 로그인 임시 코드 전달
     vm: PermitViewModel = hiltViewModel()
 ) {
@@ -71,7 +73,8 @@ fun LoginScreen(
 
     LaunchedEffect(state) {
         when (state) {
-            is PermitUiState.Success -> onHome()
+            is PermitUiState.User -> onHome()
+            is PermitUiState.Admin -> onAdmin()
             is PermitUiState.Error -> {
                 isKakaoLogin = false // 로그인 재시도 유도
             }

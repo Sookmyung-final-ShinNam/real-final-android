@@ -21,7 +21,7 @@ fun InstructionText(
     StrokeTitle(
         titleText = text,
         textAlign = textAlign,
-        titleColor = colorResource(R.color.dark_orange),
+        titleColor = colorResource(R.color.main_orange),
         strokeColor = Color.White,
         strokeWidth = 8f,
         modifier = modifier

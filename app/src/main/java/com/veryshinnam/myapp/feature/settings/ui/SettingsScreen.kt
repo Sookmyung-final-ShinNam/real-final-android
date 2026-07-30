@@ -34,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,6 +63,7 @@ import com.veryshinnam.myapp.common.component.WarningConfirmSheet
 import com.veryshinnam.myapp.common.component.WarningSheet
 import com.veryshinnam.myapp.core.orientation.OrientationManager
 import com.veryshinnam.myapp.core.session.ReviewToken
+import com.veryshinnam.myapp.feature.settings.content.SettingsPrivacyContent
 import kotlinx.coroutines.delay
 import org.threeten.bp.LocalDateTime
 
@@ -100,6 +102,8 @@ fun SettingsScreen(
             LocalDateTime.parse(ReviewToken.REVIEW_EXPIRE_AT)
         )
 
+    var isPrivacy by remember { mutableStateOf(false) } // 개인정보처리 방침 웹뷰 띄우기
+
     // 세로 모드 고정
     SideEffect {
         OrientationManager.setOrientation?.invoke(
@@ -115,154 +119,178 @@ fun SettingsScreen(
     }
 
     // 뒤로 가기
-    BackHandler { onBack() }
+    BackHandler {
+        when {
+            isPrivacy -> isPrivacy = false // 개인정보처리 방침 화면인 경우
+            else -> onBack() // 환경설정 화면인 경우
+        }
+    }
 
     // 설정 화면 UI
-    Scaffold(
-        containerColor = colorResource(id = R.color.background_yellow),
-        topBar = {
-            // 상태바 만큼 여백 & 상단 로고
-            Column {
-                Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-                LogoBar(onLogoClick = onLogoClick)
-            }
-        },
-        bottomBar = {
-            // 네비게이션바 만큼 여백
-            Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+    when {
+        isPrivacy -> {
+            SettingsPrivacyContent() // 개인정보처리 방침 화면
         }
-    ) { innerPadding ->
-        // --- 설정 화면 UI
-        Column(
-            modifier = Modifier
-                .semantics{
-                    traversalIndex = 0f
+        else -> {
+            Scaffold( // 환경설정 화면
+                containerColor = colorResource(id = R.color.background_yellow),
+                topBar = {
+                    // 상태바 만큼 여백 & 상단 로고
+                    Column {
+                        Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
+                        LogoBar(onLogoClick = onLogoClick)
+                    }
+                },
+                bottomBar = {
+                    // 네비게이션바 만큼 여백
+                    Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
                 }
-                .fillMaxWidth()
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.Center
-        ) {
-            // 뒤로 가기 버튼
-            BackButton(
-                modifier = Modifier.zIndex(1f),
-                onBackClick = onBack
-            )
-
-            // --- 버튼 영역
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.62f)
-                    .padding(horizontalPadding),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
-                shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(4.dp, colorResource(R.color.main_orange)),
-            ) {
+            ) { innerPadding ->
+                // --- 설정 화면 UI
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(verticalPadding),
-                    verticalArrangement = Arrangement.SpaceAround
+                        .semantics {
+                            traversalIndex = 0f
+                        }
+                        .fillMaxWidth()
+                        .padding(innerPadding),
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    // 로그아웃 버튼
-                    CircleButton(
-                        enabled = isEnabled,
+                    // 뒤로 가기 버튼
+                    BackButton(
+                        modifier = Modifier.zIndex(1f),
+                        onBackClick = onBack
+                    )
+
+                    // --- 버튼 영역
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .alpha(if (isEnabled) 1f else 0f),
-                        onClick =  {
-                            vm.showConfirmWarning(
-                                warningText = "정말 로그아웃 하시겠어요?",
-                                confirmText = "로그아웃 하기",
-                                onConfirm = {
-                                    vm.logout()
-                                    vm.showWarning("로그아웃이 완료되었습니다.")
-                                }
+                            .fillMaxHeight(0.66f)
+                            .padding(horizontalPadding),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(4.dp, colorResource(R.color.main_orange)),
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(verticalPadding),
+                            verticalArrangement = Arrangement.SpaceAround
+                        ) {
+                            // 로그아웃 버튼
+                            CircleButton(
+                                enabled = isEnabled,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .alpha(if (isEnabled) 1f else 0f),
+                                onClick =  {
+                                    vm.showConfirmWarning(
+                                        warningText = "정말 로그아웃 하시겠어요?",
+                                        confirmText = "로그아웃 하기",
+                                        onConfirm = {
+                                            vm.logout()
+                                            vm.showWarning("로그아웃이 완료되었습니다.")
+                                        }
+                                    )
+                                },
+                                text = "로그아웃",
+                                contentPadding = PaddingValues(vertical = horizontalPadding)
                             )
-                        },
-                        text = "로그아웃",
-                        contentPadding = PaddingValues(vertical = horizontalPadding)
+
+                            // 회원 탈퇴 버튼
+                            CircleButton(
+                                enabled = isEnabled,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .alpha(if (isEnabled) 1f else 0f),
+                                onClick =  {
+                                    vm.showConfirmWarning(
+                                        warningText =
+                                            "정말 탈퇴하시겠어요?\n\n" +
+                                                    "동화/캐릭터 정보를 제외한 사용자 관련 모든 정보가 삭제되며,\n" +
+                                                    "탈퇴 후 24시간 내에 재로그인시\n회원 탈퇴가 취소됩니다.",
+                                        confirmText = "회원 탈퇴 하기",
+                                        onConfirm = {
+                                            vm.withdraw()
+                                            vm.showWarning("회원 탈퇴가 완료되었습니다.")
+                                        }
+                                    )
+                                },
+                                text = "회원 탈퇴",
+                                contentPadding = PaddingValues(vertical = horizontalPadding)
+                            )
+
+                            // 앱 사용 매뉴얼 버튼
+                            CircleButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    vm.startManual()
+                                    onBack()
+                                },
+                                text = "앱 사용 설명 다시 보기",
+                                contentPadding = PaddingValues(vertical = horizontalPadding)
+                            )
+
+                            // 개인정보방침
+                            CircleButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    isPrivacy = true
+                                },
+                                text = "개인정보처리 방침",
+                                contentPadding = PaddingValues(vertical = horizontalPadding)
+                            )
+
+                            // 문의하기
+                            CircleButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                            data = Uri.parse("mailto:")
+                                            putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+                                            putExtra(Intent.EXTRA_SUBJECT, subjectText)
+                                            putExtra(Intent.EXTRA_TEXT, bodyText)
+                                        }
+
+                                        // resolveActivity: 사용 가능한 메일 앱 체크
+                                        if (intent.resolveActivity(context.packageManager) != null) {
+                                            context.startActivity(Intent.createChooser(intent, "문의 메일 보내기"))
+                                        }
+                                    } catch (_: Exception) {
+                                        Toast.makeText(context, "메일을 보낼 수 있는 앱이 설치되어 있지 않습니다.", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                text = "메일 보내기",
+                                contentPadding = PaddingValues(vertical = horizontalPadding)
+                            )
+                        }
+                    }
+
+                    // --- 다람쥐 이미지
+                    Image(
+                        painter = painterResource(R.drawable.img_llm_question),
+                        contentDescription = null, // 장식용 이미지
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(1f) // 남은 공간 차지
+                            .offset(y = (-20).dp)
+                            .align(Alignment.CenterHorizontally), // 가로 정렬
+                        contentScale = ContentScale.Fit
                     )
 
-                    // 회원 탈퇴 버튼
-                    CircleButton(
-                        enabled = isEnabled,
+                    InstructionText(
+                        text = "앱 사용 중 불편한 점을 발견하셨다면\n언제든지 저희에게 연락주세요!",
+                        textStyle = footerTextStyle,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .alpha(if (isEnabled) 1f else 0f),
-                        onClick =  {
-                            vm.showConfirmWarning(
-                                warningText =
-                                    "정말 탈퇴하시겠어요?\n\n" +
-                                            "동화/캐릭터 정보를 제외한 사용자 관련 모든 정보가 삭제되며,\n" +
-                                            "탈퇴 후 24시간 내에 재로그인시\n회원 탈퇴가 취소됩니다.",
-                                confirmText = "회원 탈퇴 하기",
-                                onConfirm = {
-                                    vm.withdraw()
-                                    vm.showWarning("회원 탈퇴가 완료되었습니다.")
-                                }
-                            )
-                        },
-                        text = "회원 탈퇴",
-                        contentPadding = PaddingValues(vertical = horizontalPadding)
-                    )
-
-//                     앱 사용 매뉴얼 버튼
-                    CircleButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            vm.startManual()
-                            onBack()
-                        },
-                        text = "앱 사용 설명 다시 보기",
-                        contentPadding = PaddingValues(vertical = horizontalPadding)
-                    )
-
-                    // 문의하기
-                    CircleButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            try {
-                                val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                    data = Uri.parse("mailto:")
-                                    putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
-                                    putExtra(Intent.EXTRA_SUBJECT, subjectText)
-                                    putExtra(Intent.EXTRA_TEXT, bodyText)
-                                }
-
-                                // resolveActivity: 사용 가능한 메일 앱 체크
-                                if (intent.resolveActivity(context.packageManager) != null) {
-                                    context.startActivity(Intent.createChooser(intent, "문의 메일 보내기"))
-                                }
-                            } catch (_: Exception) {
-                                Toast.makeText(context, "메일을 보낼 수 있는 앱이 설치되어 있지 않습니다.", Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        text = "메일 보내기",
-                        contentPadding = PaddingValues(vertical = horizontalPadding)
+                            .padding(bottom = horizontalPadding / 2)
                     )
                 }
             }
-
-            // --- 다람쥐 이미지
-            Image(
-                painter = painterResource(R.drawable.img_llm_question),
-                contentDescription = null, // 장식용 이미지
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f) // 남은 공간 차지
-                    .offset(y = (-50).dp)
-                    .align(Alignment.CenterHorizontally), // 가로 정렬
-                contentScale = ContentScale.Fit
-            )
-
-            InstructionText(
-                text = "앱 사용 중 불편한 점을 발견하셨다면\n언제든지 저희에게 연락주세요!",
-                textStyle = footerTextStyle,
-                modifier = Modifier.fillMaxWidth().padding(bottom = horizontalPadding / 2)
-            )
         }
     }
 

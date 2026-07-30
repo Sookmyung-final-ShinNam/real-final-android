@@ -13,12 +13,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import com.veryshinnam.myapp.feature.story.model.StoryType
 
 @Composable
-fun AdminStoryScreen(
-    navController: NavController,
-    viewModel: AdminStoryViewModel = hiltViewModel()
+fun AdminScreen(
+    onStoryClick: (Long, StoryType) -> Unit,
+    viewModel: AdminViewModel = hiltViewModel()
 ) {
     val stories by viewModel.stories.collectAsState()
     val toast by viewModel.toastMessage.collectAsState()
@@ -63,7 +63,7 @@ fun AdminStoryScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    navController.navigate("story/${story.id}/IMAGE")
+                                    onStoryClick(story.id, StoryType.IMAGE)
                                 },
                             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                         ) {
@@ -87,7 +87,7 @@ fun AdminStoryScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    navController.navigate("story/${story.id}/VIDEO")
+                                    onStoryClick(story.id, StoryType.VIDEO)
                                 },
                             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                         ) {

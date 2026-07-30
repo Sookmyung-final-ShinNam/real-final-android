@@ -8,4 +8,5 @@ object MainRoutes {
     const val COLLECTION = "collection"
     const val CHARACTER = "character/{id}"
     const val STORY = "story/{id}/{type}"
+    const val ADMIN = "admin"
 }

@@ -31,7 +31,7 @@ fun StoryPrologueContent(
     storyType: StoryType,
     onReadClick: () -> Unit,
 ) {
-    // --- 동화 썸네일 이미지 (45:55)
+    // --- 동화 썸네일 이미지 (42:58)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -46,10 +46,9 @@ fun StoryPrologueContent(
             modifier = Modifier
                 .semantics(true) {
                     traversalIndex = 0f
-                    contentDescription = "동화 썸네일" +
-                            when (storyType) {
-                                StoryType.IMAGE -> "이미지"
-                                StoryType.VIDEO -> "동영상"
+                    contentDescription = when (storyType) {
+                                StoryType.IMAGE -> "동화 썸네일 이미지. AI로 생성된 이미지입니다."
+                                StoryType.VIDEO -> "동화 썸네일 동영상. AI로 생성된 동영상입니다."
                             }
                 }
         ) {
@@ -58,15 +57,15 @@ fun StoryPrologueContent(
                     AsyncImage(
                         model = story.thumbnail,
                         contentDescription = null,
-                        modifier = Modifier.fillMaxWidth(0.45f),
-                        contentScale = ContentScale.Crop
+                        modifier = Modifier.fillMaxWidth(0.42f),
+                        contentScale = ContentScale.FillWidth
                     )
                 }
 
                 StoryType.VIDEO -> {
                     VideoPlayer(
                         videoUrl = story.thumbnail,
-                        modifier = Modifier.fillMaxWidth(0.45f)
+                        modifier = Modifier.fillMaxWidth(0.42f)
                     )
                 }
             }
@@ -75,6 +74,7 @@ fun StoryPrologueContent(
         // --- 동화 정보
         StoryInfoFade(
             story,
+            storyType = storyType,
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.CenterEnd)
@@ -86,7 +86,7 @@ fun StoryPrologueContent(
         // 보러가기 버튼
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.48f)
+                .fillMaxWidth(0.44f)
                 .fillMaxHeight()
                 .semantics {
                     traversalIndex = 2f

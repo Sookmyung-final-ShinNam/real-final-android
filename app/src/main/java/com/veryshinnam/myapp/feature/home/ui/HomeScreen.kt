@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -25,7 +26,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -55,7 +55,6 @@ import com.veryshinnam.myapp.common.component.UserItem
 import com.veryshinnam.myapp.common.component.WarningSheet
 import com.veryshinnam.myapp.common.model.ManualState
 import com.veryshinnam.myapp.core.orientation.OrientationManager
-import com.veryshinnam.myapp.feature.admin.ui.AdminStoryScreen
 import com.veryshinnam.myapp.feature.attendance.component.AttendanceReward
 
 /**
@@ -84,13 +83,11 @@ fun HomeScreen(
     bottomPadding: Dp = 10.dp,
     textStyle: TextStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = Bold),
     settingsTextStyle: TextStyle =  MaterialTheme.typography.labelSmall.copy(color = colorResource(id = R.color.main_orange)),
-    vm: HomeViewModel =  hiltViewModel(),
-    navController: NavController
+    vm: HomeViewModel =  hiltViewModel()
 ) {
     // 상태 구독
     val uiState by vm.homeUiState.collectAsStateWithLifecycle() // 화면 전체 ui
     val isNewUser by vm.isNewUser.collectAsStateWithLifecycle() // 신규 유저 여부
-    val isAdmin by vm.isAdmin.collectAsStateWithLifecycle()     // 관리자 여부
     val warningState by vm.warningState.collectAsStateWithLifecycle() // 단순 경고
     val manualState by vm.manualState.collectAsStateWithLifecycle()
     val manualMessage by vm.manualMessage.collectAsStateWithLifecycle()
@@ -120,7 +117,6 @@ fun HomeScreen(
 
     // HomeScreen 진입 시 한번만 실행
     LaunchedEffect(Unit) {
-        vm.checkAdminStatus()   // 관리자 여부 확인
         vm.reload()             // 홈 데이터 다시 불러오기
         vm.changeMessage()      // 랜덤 메시지도 갱신
     }
@@ -138,26 +134,6 @@ fun HomeScreen(
             vm.nextManualStep()
             onCreationClick()
         }
-    }
-
-    // -- 관리자 화면 관련
-    if (isAdmin == true) {
-        AdminStoryScreen(navController = navController)
-        return
-    }
-    if (isAdmin == null) {
-        // 관리자 여부 로딩 중일 때 로딩 표시
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(
-                color = colorResource(id = R.color.main_orange),
-                trackColor = Color.Gray.copy(alpha = 0.5f),
-                strokeWidth = 4.dp
-            )
-        }
-        return
     }
 
     // -- 백핸들러 설정
@@ -477,10 +453,12 @@ fun HomeScreen(
                 if (manualState == ManualState.START || manualState == ManualState.FINISH) {
                     // 전역 매뉴얼 진행 단계
                     InstructionText(
-                        text = "- $displayStep / 49 -",
+                        text = "- $displayStep / 50 -",
                         textStyle = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.navigationBarsPadding()
+                        modifier = Modifier
+                            .navigationBarsPadding()
                             .zIndex(50f)
+                            .alpha(0.8f)
                             .align(Alignment.BottomCenter)
                             .padding(bottom = 2.dp)
                             .clearAndSetSemantics { }

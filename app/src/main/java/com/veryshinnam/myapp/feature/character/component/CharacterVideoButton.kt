@@ -52,7 +52,7 @@ fun CharacterVideoButton(
             onClick = {
                 when (videoStatus) {
                     VideoStatus.NONE -> onLockerClick(storyId)  // 잠금 > 제작
-                    VideoStatus.MAKING -> onMakingClick()      // 제작 중 > 경고 시트
+                    VideoStatus.MAKING -> onMakingClick()       // 제작 중 > 경고 시트
                     VideoStatus.COMPLETED -> {
                         if (videoUrl.isNullOrBlank()) onMakingClick() // 서버 문제
                         else onStoryClick(storyId, StoryType.VIDEO)   // 표지 있으면 이동

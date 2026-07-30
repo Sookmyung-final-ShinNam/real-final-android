@@ -33,12 +33,14 @@ import com.veryshinnam.myapp.core.orientation.OrientationManager
  * 스플래시 화면
  * : 앱 시작과 동시에 mp4 재생 & 토큰 만료 체크 진행
  *
- * - onHome: 토큰 유효 > 홈 화면(HomeScreen)으로 이동
+ * - onHome: 토큰 유효 & 사용지 > 홈 화면(HomeScreen)으로 이동
+ * - onAdmin: 토큰 유효 & 관리자 > 관리자 화면(AdminScreen)으로 이동
  * - onLogin: 토큰 만료 > 로그인 화면(LoginScreen)으로 이동
  */
 @Composable
 fun SplashScreen(
     onHome: () -> Unit,
+    onAdmin: () -> Unit,
     onLogin: () -> Unit,
     vm: PermitViewModel = hiltViewModel()
 ) {
@@ -58,7 +60,8 @@ fun SplashScreen(
         if (!videoFinished) return@LaunchedEffect
 
         when (state) {
-            is PermitUiState.Success -> onHome()
+            is PermitUiState.User -> onHome()
+            is PermitUiState.Admin -> onAdmin()
             is PermitUiState.Error -> onLogin()
             else -> Unit
         }

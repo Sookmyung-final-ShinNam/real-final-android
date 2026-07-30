@@ -10,6 +10,7 @@ import com.veryshinnam.myapp.core.navigation.routes.MainRoutes
 import com.veryshinnam.myapp.core.navigation.utils.navigateTo
 import com.veryshinnam.myapp.core.navigation.utils.navigateToHome
 import com.veryshinnam.myapp.core.navigation.utils.resetToHome
+import com.veryshinnam.myapp.feature.admin.ui.AdminScreen
 import com.veryshinnam.myapp.feature.attendance.ui.AttendanceScreen
 import com.veryshinnam.myapp.feature.character.ui.CharacterScreen
 import com.veryshinnam.myapp.feature.collection.ui.CollectionScreen
@@ -29,7 +30,6 @@ fun NavGraphBuilder.mainNavGraph(
         // 홈 화면
         composable(MainRoutes.HOME) {
             HomeScreen(
-                navController = navController,
                 onSettingsClick = { navController.navigate(MainRoutes.SETTINGS) },
                 onAttendanceClick = { navController.navigate(MainRoutes.ATTENDANCE) },
                 onDashboardClick = { navController.navigate(MainRoutes.DASHBOARD) },
@@ -128,6 +128,15 @@ fun NavGraphBuilder.mainNavGraph(
                 storyType = storyType,
                 onBack = { navController.popBackStack() },
                 onLogoClick = { navController.navigateToHome() }
+            )
+        }
+
+        // 관리자 화면
+        composable(MainRoutes.ADMIN) {
+            AdminScreen(
+                onStoryClick = { storyId, type ->
+                    navController.navigateTo("story/$storyId/${type.name}")
+                }
             )
         }
     }

@@ -26,10 +26,10 @@ import javax.inject.Inject
 
 private fun changeLoopStep(loopStep: Int): String {
     return when (loopStep) {
-        1 -> "STEP_01"
-        2 -> "STEP_02"
-        3 -> "STEP_03"
-        else -> "END"
+        1 -> "기"
+        2 -> "승"
+        3 -> "전"
+        else -> "결"
     }
 }
 
@@ -88,7 +88,7 @@ class ConversationViewModel @Inject constructor(
                 // 초기화
                 _conversationUiState.value = ConversationUiState.Success(
                     sessionId = res.sessionId,
-                    nextStory = res.nextStory,
+                    story = res.nextStory,
                     questionData = QuestionData(messageId = -1, question = ""),
                     answerData = AnswerData(userAnswer = "", partialAnswer = ""),
                     feedbackData = FeedbackData(isPositive = false, text = ""),
@@ -113,7 +113,7 @@ class ConversationViewModel @Inject constructor(
             }
 
             ConversationStep.STORY -> {
-                // STORY > QUESTION (질문 표시, 단계만 바뀜)
+                // STORY > QUESTION (스토리 표시, 단계만 바뀜)
                 _conversationUiState.value = state.copy(conversationStep = ConversationStep.QUESTION)
             }
 
@@ -125,9 +125,7 @@ class ConversationViewModel @Inject constructor(
 
             ConversationStep.ANSWER -> {
                 // ANSWER > FEEDBACK (피드백 표시)
-
                 viewModelScope.launch { fetchFeedback(state) }
-
             }
             else -> {}
         }
@@ -148,6 +146,7 @@ class ConversationViewModel @Inject constructor(
         } else {
             // 긍정 → 다음 루프 or END
             val nextLoop = state.loopStep + 1
+
             if (nextLoop <= 4) {
                 viewModelScope.launch {
                     fetchNextStep(
@@ -174,7 +173,7 @@ class ConversationViewModel @Inject constructor(
             Log.d("ConversationAPI", "nextStory: ${res.nextStory},messageId:  ${res.messageId}, question: ${res.llmQuestion}")
 
             _conversationUiState.value = state.copy(
-                nextStory = res.nextStory,
+                story = res.nextStory,
                 questionData = QuestionData(res.messageId, res.llmQuestion),
                 feedbackData = state.feedbackData.copy(tryNum = 0),
                 conversationStep = ConversationStep.STORY
@@ -239,7 +238,7 @@ class ConversationViewModel @Inject constructor(
         val state = _conversationUiState.value as? ConversationUiState.Success ?: return
 
         when (state.conversationStep) {
-            ConversationStep.START, ConversationStep.STORY -> ttsManger.speak(state.nextStory, flush = true)
+            ConversationStep.START, ConversationStep.STORY -> ttsManger.speak(state.story, flush = true)
             ConversationStep.QUESTION -> ttsManger.speak(state.questionData.question, flush = true)
             ConversationStep.FEEDBACK -> ttsManger.speak(state.feedbackData.text, flush = true)
             else -> return
@@ -390,10 +389,10 @@ class ConversationViewModel @Inject constructor(
     // --- 매뉴얼 관련 ---
     // 생성 전 선택 화면 사용 매뉴얼
     val manuals = listOf(
-        ManualScriptData(step = ConversationStep.START, nextStory = "동화를 만들 준비가 모두 끝났어요!\n이제 지금까지 고른 내용으로\n4번에 나누어 재미있는 이야기를 만들어 볼게요."),
-        ManualScriptData(step = ConversationStep.START, nextStory = "중간에 질문도 있으니 천천히 생각하면서 함께 멋진 동화를 만들어 봐요~"),
-        ManualScriptData(step = ConversationStep.STORY, nextStory = "갈색 곱슬머리의 짱신남은 숲 속에서 새로운 모험을 찾기 위해 친구들과 함께 떠날 준비를 하고 있었어요."),
-        ManualScriptData(step = ConversationStep.STORY, nextStory = "그때 신비한 요정 스토릭터는 짱신남에게 말했어요.\n\"어디 가는거니?\""),
+        ManualScriptData(step = ConversationStep.START, story = "동화를 만들 준비가 모두 끝났어요!\n이제 지금까지 고른 내용으로\n4번에 나누어 재미있는 이야기를 만들어 볼게요."),
+        ManualScriptData(step = ConversationStep.START, story = "중간에 질문도 있으니 천천히 생각하면서 함께 멋진 동화를 만들어 봐요~"),
+        ManualScriptData(step = ConversationStep.STORY, story = "갈색 곱슬머리의 짱신남은 숲 속에서 새로운 모험을 찾기 위해 친구들과 함께 떠날 준비를 하고 있었어요."),
+        ManualScriptData(step = ConversationStep.STORY, story = "그때 신비한 요정 스토릭터는 짱신남에게 말했어요.\n\"어디 가는거니?\""),
         ManualScriptData(step = ConversationStep.QUESTION,  question = "짱신남은 요정 스토릭터에게 무슨 말을 했을까요?"),
         ManualScriptData(step = ConversationStep.QUESTION, question = "생각이 떠올랐나요?\n아래에 있는 마이크 버튼을 눌러\n3초 동안 말해 주세요!"),
         ManualScriptData(step = ConversationStep.ANSWER),
@@ -407,7 +406,7 @@ class ConversationViewModel @Inject constructor(
         val script = manuals[index]
 
         val message = when (script.step) {
-            ConversationStep.START, ConversationStep.STORY -> script.nextStory
+            ConversationStep.START, ConversationStep.STORY -> script.story
             ConversationStep.QUESTION -> script.question
             ConversationStep.FEEDBACK -> script.feedback.text
             else -> ""
@@ -416,7 +415,7 @@ class ConversationViewModel @Inject constructor(
 
         _conversationUiState.value = ConversationUiState.Success(
             sessionId = -1L,
-            nextStory = message,
+            story = message,
             questionData = QuestionData(
                 messageId = -1,
                 question = message

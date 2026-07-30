@@ -2,7 +2,7 @@ package com.veryshinnam.myapp.core.di
 
 import com.veryshinnam.myapp.core.network.AuthInterceptor
 import com.veryshinnam.myapp.core.network.BaseUrls
-import com.veryshinnam.myapp.feature.admin.data.api.AdminStoryApi
+import com.veryshinnam.myapp.feature.admin.data.api.AdminApi
 import com.veryshinnam.myapp.feature.attendance.data.api.AttendanceApi
 import com.veryshinnam.myapp.feature.character.data.api.CharacterApi
 import com.veryshinnam.myapp.feature.creation.data.api.ConversationApi
@@ -87,8 +87,8 @@ object NetworkModule  {
 
     @Provides
     @Singleton
-    fun provideAdminApi(retrofit: Retrofit): AdminStoryApi =
-        retrofit.create(AdminStoryApi::class.java)
+    fun provideAdminApi(retrofit: Retrofit): AdminApi =
+        retrofit.create(AdminApi::class.java)
 
     @Provides
     @Singleton

@@ -234,8 +234,8 @@ fun DashboardScreen(
                                 cardColor = greenColor,
                                 cardText =  if (isManual) manualMessage
                                     else if (isEmpty) "아직 ${state.username}의\n최대 관심사를 찾을 수 없어요!"
-                                    else "${state.username}의 최대 관심사예요! \n{${state.maxTheme}}, {${state.maxBackground}}",
-                                spanText = "최대 관심사",
+                                    else "${state.username}의 최대 관심사예요! \n#${state.maxTheme} #${state.maxBackground}",
+                                spanText = "#${state.maxTheme} #${state.maxBackground}",
                                 spanColor = greenColor
                             )
                         }
@@ -486,10 +486,12 @@ fun DashboardScreen(
 
             // 전역 매뉴얼 진행 단계
             InstructionText(
-                text = "- $manualStep / 49 -",
+                text = "- $manualStep / 50 -",
                 textStyle = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.navigationBarsPadding()
+                modifier = Modifier
+                    .navigationBarsPadding()
                     .zIndex(50f)
+                    .alpha(0.8f)
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 2.dp)
                     .clearAndSetSemantics { }

@@ -333,7 +333,7 @@ fun ConversationScreen(
                                     when (state.conversationStep) {
                                         ConversationStep.START -> { // 대화 시작 (다음 이야기)
                                             ConversationStoryContent(
-                                                nextStory = if (isManual) manualMessage else state.nextStory,
+                                                nextStory = if (isManual) manualMessage else state.story,
                                                 step = ConversationStep.START,
                                                 isTtsSpeaking = isTtsSpeaking,
                                                 onReplayClick = onReplayClick,
@@ -345,7 +345,7 @@ fun ConversationScreen(
 
                                         ConversationStep.STORY -> { // 다음 이야기
                                             ConversationStoryContent(
-                                                nextStory = if (isManual) manualMessage else state.nextStory,
+                                                nextStory = if (isManual) manualMessage else state.story,
                                                 step = ConversationStep.STORY,
                                                 isTtsSpeaking = isTtsSpeaking,
                                                 onReplayClick = onReplayClick,
@@ -475,11 +475,13 @@ fun ConversationScreen(
 
             // 전역 매뉴얼 진행 단계
             InstructionText(
-                text = "- $manualStep / 49 -",
+                text = "- $manualStep / 50 -",
                 textStyle = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.navigationBarsPadding()
+                modifier = Modifier
+                    .navigationBarsPadding()
                     .zIndex(50f)
-                    .align(Alignment.BottomCenter)
+                    .alpha(0.8f)
+                     .align(Alignment.BottomCenter)
                     .padding(bottom = 2.dp)
                     .clearAndSetSemantics { }
             )

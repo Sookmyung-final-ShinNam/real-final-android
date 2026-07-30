@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -32,6 +33,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.veryshinnam.myapp.R
 import com.veryshinnam.myapp.feature.story.model.PageData
 import com.veryshinnam.myapp.feature.story.model.StoryType
@@ -113,6 +115,7 @@ fun StoryReadingContent(
                 modifier = Modifier
                     .fillMaxHeight(0.3f)
                     .systemBarsPadding()
+                    .padding(end = 8.dp)
                     .clickable { onTtsModeChange() }
                     .align(Alignment.TopEnd)
                     .semantics(true) {
@@ -131,7 +134,7 @@ fun StoryReadingContent(
                 )
 
                 Text(
-                    text = " 소리 재생 \n" + if (isTtsMode) "켜짐" else "꺼짐",
+                    text = " 소리 " + if (isTtsMode) "켜짐" else "꺼짐",
                     textAlign = TextAlign.Center,
                     style = ttsTextStyle.copy(
                         lineHeight = ttsTextStyle.lineHeight * 1.2f

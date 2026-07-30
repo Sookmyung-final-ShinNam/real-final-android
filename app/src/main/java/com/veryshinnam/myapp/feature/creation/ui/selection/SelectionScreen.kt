@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -495,10 +496,12 @@ fun SelectionScreen(
 
             // 전역 매뉴얼 진행 단계
             InstructionText(
-                text = "- $manualStep / 49 -",
+                text = "- $manualStep / 50 -",
                 textStyle = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.navigationBarsPadding()
+                modifier = Modifier
+                    .navigationBarsPadding()
                     .zIndex(50f)
+                    .alpha(0.8f)
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 2.dp)
                     .clearAndSetSemantics { }

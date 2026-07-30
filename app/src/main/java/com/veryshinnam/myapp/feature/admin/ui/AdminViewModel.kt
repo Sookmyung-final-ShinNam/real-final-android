@@ -3,7 +3,7 @@ package com.veryshinnam.myapp.feature.admin.ui
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.veryshinnam.myapp.feature.admin.data.repository.AdminStoryRepository
+import com.veryshinnam.myapp.feature.admin.data.repository.AdminRepository
 import com.veryshinnam.myapp.feature.admin.model.AdminStory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,8 +12,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AdminStoryViewModel @Inject constructor(
-    private val repository: AdminStoryRepository
+class AdminViewModel @Inject constructor(
+    private val repository: AdminRepository
 ) : ViewModel() {
 
     private val TAG = "AdminStoryVM"
@@ -29,12 +29,7 @@ class AdminStoryViewModel @Inject constructor(
             try {
                 val result = repository.getIncompleteStories()
                 Log.d(TAG, "API Response (loadStories): $result")
-
-                if (result.result != null) {
-                    _stories.value = result.result
-                } else {
-                    Log.w(TAG, "Warning: result.result is null")
-                }
+                _stories.value = result
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading stories", e)
             }
@@ -47,7 +42,7 @@ class AdminStoryViewModel @Inject constructor(
                 val result = repository.uploadImageYoutubeLink(id, link)
                 Log.d(TAG, "API Response (uploadImageLink): $result")
 
-                _toastMessage.value = result.result
+                _toastMessage.value = result
                 loadStories()
             } catch (e: Exception) {
                 Log.e(TAG, "Error uploading image link", e)
@@ -61,7 +56,7 @@ class AdminStoryViewModel @Inject constructor(
                 val result = repository.uploadVideoYoutubeLink(id, link)
                 Log.d(TAG, "API Response (uploadVideoLink): $result")
 
-                _toastMessage.value = result.result
+                _toastMessage.value = result
                 loadStories()
             } catch (e: Exception) {
                 Log.e(TAG, "Error uploading video link", e)
@@ -69,8 +64,18 @@ class AdminStoryViewModel @Inject constructor(
         }
     }
 
+    fun getFailedStories() {
+        viewModelScope.launch {
+            try {
+                val result = repository.getFailedStories()
+                Log.d(TAG, "API Response (getFailedStories): $result")
+            } catch (e: Exception) {
+                Log.e(TAG, "API Response Error (getFailedStories)", e)
+            }
+        }
+    }
+
     fun clearToast() {
         _toastMessage.value = null
     }
-
 }
