@@ -79,8 +79,9 @@ import org.threeten.bp.LocalDateTime
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onBack: () -> Unit, // 뒤로, 홈으로
+    onBack: () -> Unit,
     onLogoClick: () -> Unit,
+    onClassroomClick: () -> Unit = {},
     horizontalPadding: Dp = 16.dp,
     verticalPadding: Dp = 24.dp,
     footerTextStyle: TextStyle =  MaterialTheme.typography.bodySmall,
@@ -180,93 +181,92 @@ fun SettingsScreen(
                                 .padding(verticalPadding),
                             verticalArrangement = Arrangement.SpaceAround
                         ) {
-                            // 로그아웃 버튼
-                            CircleButton(
-                                enabled = isEnabled,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .alpha(if (isEnabled) 1f else 0f),
-                                onClick =  {
-                                    vm.showConfirmWarning(
-                                        warningText = "정말 로그아웃 하시겠어요?",
-                                        confirmText = "로그아웃 하기",
-                                        onConfirm = {
-                                            vm.logout()
-                                            vm.showWarning("로그아웃이 완료되었습니다.")
-                                        }
-                                    )
-                                },
-                                text = "로그아웃",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
+                            val btnPadding = PaddingValues(vertical = horizontalPadding)
 
-                            // 회원 탈퇴 버튼
-                            CircleButton(
-                                enabled = isEnabled,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .alpha(if (isEnabled) 1f else 0f),
-                                onClick =  {
-                                    vm.showConfirmWarning(
-                                        warningText =
-                                            "정말 탈퇴하시겠어요?\n\n" +
-                                                    "동화/캐릭터 정보를 제외한 사용자 관련 모든 정보가 삭제되며,\n" +
-                                                    "탈퇴 후 24시간 내에 재로그인시\n회원 탈퇴가 취소됩니다.",
-                                        confirmText = "회원 탈퇴 하기",
-                                        onConfirm = {
-                                            vm.withdraw()
-                                            vm.showWarning("회원 탈퇴가 완료되었습니다.")
-                                        }
-                                    )
-                                },
-                                text = "회원 탈퇴",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
-
-                            // 앱 사용 매뉴얼 버튼
-                            CircleButton(
+                            // 1행: 로그아웃 / 회원 탈퇴
+                            androidx.compose.foundation.layout.Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    vm.startManual()
-                                    onBack()
-                                },
-                                text = "앱 사용 설명 다시 보기",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                CircleButton(
+                                    enabled = isEnabled,
+                                    modifier = Modifier.weight(1f).alpha(if (isEnabled) 1f else 0f),
+                                    onClick = {
+                                        vm.showConfirmWarning(
+                                            warningText = "정말 로그아웃 하시겠어요?",
+                                            confirmText = "로그아웃 하기",
+                                            onConfirm = { vm.logout(); vm.showWarning("로그아웃이 완료되었습니다.") }
+                                        )
+                                    },
+                                    text = "로그아웃",
+                                    contentPadding = btnPadding
+                                )
+                                CircleButton(
+                                    enabled = isEnabled,
+                                    modifier = Modifier.weight(1f).alpha(if (isEnabled) 1f else 0f),
+                                    onClick = {
+                                        vm.showConfirmWarning(
+                                            warningText = "정말 탈퇴하시겠어요?\n\n동화/캐릭터 정보를 제외한 사용자 관련 모든 정보가 삭제되며,\n탈퇴 후 24시간 내에 재로그인시\n회원 탈퇴가 취소됩니다.",
+                                            confirmText = "회원 탈퇴 하기",
+                                            onConfirm = { vm.withdraw(); vm.showWarning("회원 탈퇴가 완료되었습니다.") }
+                                        )
+                                    },
+                                    text = "회원 탈퇴",
+                                    contentPadding = btnPadding
+                                )
+                            }
 
-                            // 개인정보방침
-                            CircleButton(
+                            // 2행: 앱 설명 / 개인정보방침
+                            androidx.compose.foundation.layout.Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    isPrivacy = true
-                                },
-                                text = "개인정보처리 방침",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                CircleButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { vm.startManual(); onBack() },
+                                    text = "앱 사용 설명",
+                                    contentPadding = btnPadding
+                                )
+                                CircleButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { isPrivacy = true },
+                                    text = "개인정보 방침",
+                                    contentPadding = btnPadding
+                                )
+                            }
 
-                            // 문의하기
-                            CircleButton(
+                            // 3행: 메일 보내기 / 학급
+                            androidx.compose.foundation.layout.Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    try {
-                                        val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                            data = Uri.parse("mailto:")
-                                            putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
-                                            putExtra(Intent.EXTRA_SUBJECT, subjectText)
-                                            putExtra(Intent.EXTRA_TEXT, bodyText)
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                CircleButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                                data = Uri.parse("mailto:")
+                                                putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+                                                putExtra(Intent.EXTRA_SUBJECT, subjectText)
+                                                putExtra(Intent.EXTRA_TEXT, bodyText)
+                                            }
+                                            if (intent.resolveActivity(context.packageManager) != null) {
+                                                context.startActivity(Intent.createChooser(intent, "문의 메일 보내기"))
+                                            }
+                                        } catch (_: Exception) {
+                                            Toast.makeText(context, "메일 앱이 없습니다.", Toast.LENGTH_SHORT).show()
                                         }
-
-                                        // resolveActivity: 사용 가능한 메일 앱 체크
-                                        if (intent.resolveActivity(context.packageManager) != null) {
-                                            context.startActivity(Intent.createChooser(intent, "문의 메일 보내기"))
-                                        }
-                                    } catch (_: Exception) {
-                                        Toast.makeText(context, "메일을 보낼 수 있는 앱이 설치되어 있지 않습니다.", Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                text = "메일 보내기",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
+                                    },
+                                    text = "메일 보내기",
+                                    contentPadding = btnPadding
+                                )
+                                CircleButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = onClassroomClick,
+                                    text = "🏫 학급",
+                                    contentPadding = btnPadding
+                                )
+                            }
                         }
                     }
 

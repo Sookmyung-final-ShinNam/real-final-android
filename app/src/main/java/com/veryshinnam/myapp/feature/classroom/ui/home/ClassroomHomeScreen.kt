@@ -65,7 +65,7 @@ fun ClassroomHomeScreen(
                         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        item { Spacer(Modifier.height(8.dp)) }
+                        item { Spacer(Modifier.height(48.dp)) }
 
                         // 선생님 학급 섹션
                         if (!state.teacherData?.classrooms.isNullOrEmpty()) {

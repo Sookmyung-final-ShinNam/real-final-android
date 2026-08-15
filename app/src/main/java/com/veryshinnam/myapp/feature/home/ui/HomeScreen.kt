@@ -313,14 +313,6 @@ fun HomeScreen(
                                     }
                                     .weight(1f, fill = true)
                             ) {
-                                // 학급 버튼
-                                CircleButton(
-                                    text = "🏫 학급",
-                                    onClick = onClassroomClick,
-                                    modifier = Modifier
-                                        .padding(horizontal = horizontalPadding, vertical = 4.dp)
-                                        .fillMaxWidth()
-                                )
                                 // 캐러셀 (남은 공간의 80%)
                                 HomeFavoriteCarousel(
                                     modifier = Modifier

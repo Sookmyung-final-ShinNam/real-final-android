@@ -47,7 +47,8 @@ fun NavGraphBuilder.mainNavGraph(
         composable(MainRoutes.SETTINGS) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
-                onLogoClick = { navController.navigateToHome() }
+                onLogoClick = { navController.navigateToHome() },
+                onClassroomClick = { navController.navigateTo(ClassroomRoutes.CLASSROOM_HOME) }
             )
         }
 
