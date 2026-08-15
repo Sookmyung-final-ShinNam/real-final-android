@@ -2,6 +2,8 @@ package com.veryshinnam.myapp.core.di
 
 import com.veryshinnam.myapp.feature.admin.data.repository.AdminRepository
 import com.veryshinnam.myapp.feature.admin.data.repository.AdminRepositoryImpl
+import com.veryshinnam.myapp.feature.classroom.data.repository.ClassroomRepository
+import com.veryshinnam.myapp.feature.classroom.data.repository.ClassroomRepositoryImpl
 import com.veryshinnam.myapp.feature.attendance.data.repository.AttendanceRepository
 import com.veryshinnam.myapp.feature.attendance.data.repository.AttendanceRepositoryImpl
 import com.veryshinnam.myapp.feature.character.data.repository.CharacterRepository
@@ -63,4 +65,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindDashboardRepository(impl: DashboardRepositoryImpl): DashboardRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindClassroomRepository(impl: ClassroomRepositoryImpl): ClassroomRepository
 }

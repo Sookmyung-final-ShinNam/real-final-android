@@ -10,6 +10,7 @@ import com.veryshinnam.myapp.core.navigation.routes.MainRoutes
 import com.veryshinnam.myapp.core.navigation.utils.navigateTo
 import com.veryshinnam.myapp.core.navigation.utils.navigateToHome
 import com.veryshinnam.myapp.core.navigation.utils.resetToHome
+import com.veryshinnam.myapp.core.navigation.routes.ClassroomRoutes
 import com.veryshinnam.myapp.feature.admin.ui.AdminScreen
 import com.veryshinnam.myapp.feature.attendance.ui.AttendanceScreen
 import com.veryshinnam.myapp.feature.character.ui.CharacterScreen
@@ -139,5 +140,8 @@ fun NavGraphBuilder.mainNavGraph(
                 }
             )
         }
+
+        // 학급 기능 화면들
+        classroomNavGraph(navController)
     }
 }

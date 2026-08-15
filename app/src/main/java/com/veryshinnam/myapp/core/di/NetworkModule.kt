@@ -3,6 +3,7 @@ package com.veryshinnam.myapp.core.di
 import com.veryshinnam.myapp.core.network.AuthInterceptor
 import com.veryshinnam.myapp.core.network.BaseUrls
 import com.veryshinnam.myapp.feature.admin.data.api.AdminApi
+import com.veryshinnam.myapp.feature.classroom.data.api.ClassroomApi
 import com.veryshinnam.myapp.feature.attendance.data.api.AttendanceApi
 import com.veryshinnam.myapp.feature.character.data.api.CharacterApi
 import com.veryshinnam.myapp.feature.creation.data.api.ConversationApi
@@ -94,4 +95,9 @@ object NetworkModule  {
     @Singleton
     fun provideDashboardApi(retrofit: Retrofit): DashboardApi =
         retrofit.create(DashboardApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideClassroomApi(retrofit: Retrofit): ClassroomApi =
+        retrofit.create(ClassroomApi::class.java)
 }

@@ -9,4 +9,5 @@ object MainRoutes {
     const val CHARACTER = "character/{id}"
     const val STORY = "story/{id}/{type}"
     const val ADMIN = "admin"
+    const val CLASSROOM = "classroom_home"
 }
