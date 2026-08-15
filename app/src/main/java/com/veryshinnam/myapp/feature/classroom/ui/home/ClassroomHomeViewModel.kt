@@ -13,6 +13,11 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
 
+data class AcornState(
+    val isLoading: Boolean = false,
+    val message: String? = null
+)
+
 sealed interface ClassroomHomeUiState {
     data object Loading : ClassroomHomeUiState
     data class Error(val message: String) : ClassroomHomeUiState
@@ -30,7 +35,31 @@ class ClassroomHomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<ClassroomHomeUiState>(ClassroomHomeUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
+    private val _acornState = MutableStateFlow(AcornState())
+    val acornState = _acornState.asStateFlow()
+
     init { reload() }
+
+    fun chargeAcorn() {
+        viewModelScope.launch {
+            _acornState.value = AcornState(isLoading = true)
+            try {
+                repository.chargeAcorn()
+                _acornState.value = AcornState(message = "도토리 5개가 충전됐어요! 🌰")
+            } catch (e: HttpException) {
+                _acornState.value = AcornState(
+                    message = when (e.code()) {
+                        400 -> "도토리가 이미 20개입니다. 관리자 승인이 필요해요."
+                        else -> "충전에 실패했어요."
+                    }
+                )
+            } catch (e: Exception) {
+                _acornState.value = AcornState(message = "오류가 발생했어요.")
+            }
+        }
+    }
+
+    fun clearAcornMessage() { _acornState.value = AcornState() }
 
     fun reload() {
         viewModelScope.launch {

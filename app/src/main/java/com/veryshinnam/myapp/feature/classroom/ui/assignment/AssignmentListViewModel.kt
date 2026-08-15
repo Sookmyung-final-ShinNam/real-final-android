@@ -18,6 +18,12 @@ sealed interface AssignmentListUiState {
     data class Success(val assignments: List<AssignmentData>) : AssignmentListUiState
 }
 
+data class CreateAssignmentState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val isDone: Boolean = false
+)
+
 @HiltViewModel
 class AssignmentListViewModel @Inject constructor(
     private val repository: ClassroomRepository,
@@ -28,6 +34,9 @@ class AssignmentListViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<AssignmentListUiState>(AssignmentListUiState.Loading)
     val uiState = _uiState.asStateFlow()
+
+    private val _createState = MutableStateFlow(CreateAssignmentState())
+    val createState = _createState.asStateFlow()
 
     init { reload() }
 
@@ -44,4 +53,26 @@ class AssignmentListViewModel @Inject constructor(
             }
         }
     }
+
+    fun createAssignment(title: String, description: String, dueAt: String, commonPrompt: String) {
+        viewModelScope.launch {
+            _createState.value = CreateAssignmentState(isLoading = true)
+            try {
+                repository.createAssignment(classroomId, title, description, dueAt, commonPrompt)
+                _createState.value = CreateAssignmentState(isDone = true)
+                reload()
+            } catch (e: HttpException) {
+                _createState.value = CreateAssignmentState(
+                    errorMessage = when (e.code()) {
+                        403 -> "과제 등록 권한이 없어요."
+                        else -> "과제 등록에 실패했어요."
+                    }
+                )
+            } catch (e: Exception) {
+                _createState.value = CreateAssignmentState(errorMessage = "오류가 발생했어요.")
+            }
+        }
+    }
+
+    fun resetCreateState() { _createState.value = CreateAssignmentState() }
 }

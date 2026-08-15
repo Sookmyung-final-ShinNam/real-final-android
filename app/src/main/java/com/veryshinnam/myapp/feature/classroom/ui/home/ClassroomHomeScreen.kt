@@ -23,6 +23,7 @@ import com.veryshinnam.myapp.common.component.BackButton
 import com.veryshinnam.myapp.common.component.CircleButton
 import com.veryshinnam.myapp.common.component.LoadErrorView
 import com.veryshinnam.myapp.common.component.LogoBar
+import com.veryshinnam.myapp.common.component.WarningSheet
 import com.veryshinnam.myapp.feature.classroom.data.model.JoinStatus
 import com.veryshinnam.myapp.core.orientation.OrientationManager
 
@@ -36,6 +37,7 @@ fun ClassroomHomeScreen(
     vm: ClassroomHomeViewModel = hiltViewModel()
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val acornState by vm.acornState.collectAsStateWithLifecycle()
 
     SideEffect { OrientationManager.setOrientation?.invoke(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) }
 
@@ -135,6 +137,15 @@ fun ClassroomHomeScreen(
                             }
                         }
 
+                        // 도토리 충전
+                        item {
+                            CircleButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = { vm.chargeAcorn() },
+                                text = if (acornState.isLoading) "충전 중..." else "🌰 도토리 충전 (+5)"
+                            )
+                        }
+
                         item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars)) }
                     }
                 }
@@ -145,6 +156,10 @@ fun ClassroomHomeScreen(
                 onBackClick = onBack
             )
         }
+    }
+
+    if (acornState.message != null) {
+        WarningSheet(warningText = acornState.message!!, onDismiss = { vm.clearAcornMessage() })
     }
 }
 
