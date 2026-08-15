@@ -3,8 +3,8 @@ package com.veryshinnam.myapp.feature.classroom.data.repository
 import com.veryshinnam.myapp.feature.classroom.data.api.ClassroomApi
 import com.veryshinnam.myapp.feature.classroom.data.model.*
 import com.veryshinnam.myapp.feature.classroom.data.model.ClassroomRequest
-import com.veryshinnam.myapp.feature.creation.data.model.StartRequest
-import com.veryshinnam.myapp.feature.creation.data.model.StartResult
+import com.veryshinnam.myapp.feature.creation.data.dto.StartRequest
+import com.veryshinnam.myapp.feature.creation.data.dto.StartResult
 import javax.inject.Inject
 
 class ClassroomRepositoryImpl @Inject constructor(

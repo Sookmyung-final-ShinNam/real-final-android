@@ -1,8 +1,8 @@
 package com.veryshinnam.myapp.feature.classroom.data.repository
 
 import com.veryshinnam.myapp.feature.classroom.data.model.*
-import com.veryshinnam.myapp.feature.creation.data.model.StartRequest
-import com.veryshinnam.myapp.feature.creation.data.model.StartResult
+import com.veryshinnam.myapp.feature.creation.data.dto.StartRequest
+import com.veryshinnam.myapp.feature.creation.data.dto.StartResult
 
 interface ClassroomRepository {
     suspend fun sendEmailVerification(email: String)

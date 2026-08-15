@@ -36,6 +36,7 @@ fun NavGraphBuilder.mainNavGraph(
                 onDashboardClick = { navController.navigate(MainRoutes.DASHBOARD) },
                 onCreationClick = { navController.navigate(NavGraphs.CREATION) },
                 onCollectionClick = { navController.navigate(MainRoutes.COLLECTION) },
+                onClassroomClick = { navController.navigateTo(ClassroomRoutes.CLASSROOM_HOME) },
                 onCharacterClick = { charId ->
                     navController.navigate("character/$charId")
                 }

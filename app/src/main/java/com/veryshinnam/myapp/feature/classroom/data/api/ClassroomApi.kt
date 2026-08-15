@@ -3,8 +3,8 @@ package com.veryshinnam.myapp.feature.classroom.data.api
 import com.veryshinnam.myapp.core.network.BaseResponse
 import com.veryshinnam.myapp.feature.classroom.data.model.ClassroomResult
 import com.veryshinnam.myapp.feature.classroom.data.model.ClassroomRequest
-import com.veryshinnam.myapp.feature.creation.data.model.StartRequest
-import com.veryshinnam.myapp.feature.creation.data.model.StartResult
+import com.veryshinnam.myapp.feature.creation.data.dto.StartRequest
+import com.veryshinnam.myapp.feature.creation.data.dto.StartResult
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST

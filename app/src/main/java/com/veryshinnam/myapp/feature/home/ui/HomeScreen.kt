@@ -76,6 +76,7 @@ fun HomeScreen(
     onDashboardClick: () -> Unit,       // 바텀 버튼
     onCreationClick: () -> Unit,        // 바텀 버튼
     onCollectionClick: () -> Unit,      // 바텀 버튼
+    onClassroomClick: () -> Unit = {},  // 학급 버튼
     messageBorder: Dp = 4.dp,
     messageCorner: Dp = 16.dp,
     messagePadding: Dp = 20.dp,
@@ -312,6 +313,14 @@ fun HomeScreen(
                                     }
                                     .weight(1f, fill = true)
                             ) {
+                                // 학급 버튼
+                                CircleButton(
+                                    text = "🏫 학급",
+                                    onClick = onClassroomClick,
+                                    modifier = Modifier
+                                        .padding(horizontal = horizontalPadding, vertical = 4.dp)
+                                        .fillMaxWidth()
+                                )
                                 // 캐러셀 (남은 공간의 80%)
                                 HomeFavoriteCarousel(
                                     modifier = Modifier
