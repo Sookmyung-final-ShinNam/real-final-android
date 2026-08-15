@@ -123,7 +123,7 @@ fun ClassroomDetailScreen(
                 }
             }
 
-            BackButton(onClick = onBack, modifier = Modifier.align(Alignment.TopStart).padding(start = 16.dp, top = 8.dp))
+            BackButton(modifier = Modifier.align(Alignment.TopStart).padding(start = 16.dp, top = 8.dp), onBackClick = onBack)
 
             // 승인 결과 스낵바
             if (approveResult != null) {

@@ -86,8 +86,8 @@ fun CreateClassroomScreen(
             }
 
             BackButton(
-                onClick = onBack,
-                modifier = Modifier.align(Alignment.TopStart).padding(start = 16.dp, top = 8.dp)
+                modifier = Modifier.align(Alignment.TopStart).padding(start = 16.dp, top = 8.dp),
+                onBackClick = onBack
             )
         }
     }

@@ -1,6 +1,6 @@
 package com.veryshinnam.myapp.feature.classroom.data.model
 
-data class ClassroomResult {
+class ClassroomResult {
 
     data class CreateClassroomResult(val code: String)
 
