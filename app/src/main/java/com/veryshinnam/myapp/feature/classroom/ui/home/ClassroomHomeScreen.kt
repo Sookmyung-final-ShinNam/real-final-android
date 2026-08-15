@@ -25,6 +25,10 @@ import com.veryshinnam.myapp.common.component.LoadErrorView
 import com.veryshinnam.myapp.common.component.LogoBar
 import com.veryshinnam.myapp.common.component.WarningSheet
 import com.veryshinnam.myapp.feature.classroom.data.model.JoinStatus
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import com.veryshinnam.myapp.core.orientation.OrientationManager
 
 @Composable
@@ -38,6 +42,7 @@ fun ClassroomHomeScreen(
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val acornState by vm.acornState.collectAsStateWithLifecycle()
+    var showRoleSheet by remember { mutableStateOf(false) }
 
     SideEffect { OrientationManager.setOrientation?.invoke(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) }
 
@@ -120,24 +125,13 @@ fun ClassroomHomeScreen(
 
                         // 하단 버튼
                         item {
-                            Row(
+                            CircleButton(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                CircleButton(
-                                    modifier = Modifier.weight(1f),
-                                    onClick = onCreateClick,
-                                    text = "학급 만들기"
-                                )
-                                CircleButton(
-                                    modifier = Modifier.weight(1f),
-                                    onClick = onJoinClick,
-                                    text = "학급 가입"
-                                )
-                            }
+                                onClick = { showRoleSheet = true },
+                                text = "학급 참여하기"
+                            )
                         }
 
-                        // 도토리 충전
                         item {
                             CircleButton(
                                 modifier = Modifier.fillMaxWidth(),
@@ -160,6 +154,86 @@ fun ClassroomHomeScreen(
 
     if (acornState.message != null) {
         WarningSheet(warningText = acornState.message!!, onDismiss = { vm.clearAcornMessage() })
+    }
+
+    // 역할 선택 바텀시트
+    if (showRoleSheet) {
+        RoleSelectSheet(
+            onDismiss = { showRoleSheet = false },
+            onTeacherClick = { showRoleSheet = false; onCreateClick() },
+            onStudentClick = { showRoleSheet = false; onJoinClick() }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RoleSelectSheet(
+    onDismiss: () -> Unit,
+    onTeacherClick: () -> Unit,
+    onStudentClick: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "어떤 역할로 참여하시나요?",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = colorResource(R.color.main_orange)
+            )
+            Spacer(Modifier.height(4.dp))
+
+            // 선생님 카드
+            RoleCard(
+                emoji = "👩‍🏫",
+                title = "선생님",
+                description = "이메일 인증 후 새 학급을 만들어요",
+                onClick = onTeacherClick
+            )
+
+            // 학생 카드
+            RoleCard(
+                emoji = "👨‍🎓",
+                title = "학생",
+                description = "선생님께 받은 코드로 학급에 가입해요",
+                onClick = onStudentClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun RoleCard(
+    emoji: String,
+    title: String,
+    description: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colorResource(R.color.background_yellow), RoundedCornerShape(16.dp))
+            .border(2.dp, colorResource(R.color.main_orange), RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 18.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(emoji, style = MaterialTheme.typography.headlineMedium)
+        Column {
+            Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            Text(description, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        }
     }
 }
 
