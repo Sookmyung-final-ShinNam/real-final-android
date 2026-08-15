@@ -1,6 +1,6 @@
 package com.veryshinnam.myapp.feature.classroom.data.model
 
-data class ClassroomRequest {
+class ClassroomRequest {
     data class SendEmailRequest(val email: String)
     data class VerifyEmailRequest(val code: String)
     data class CreateClassroomRequest(val name: String)
