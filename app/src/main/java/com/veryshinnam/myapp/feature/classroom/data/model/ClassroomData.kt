@@ -29,7 +29,8 @@ data class ClassroomDetailData(
     val name: String,
     val points: Int,
     val createdAt: String,
-    val students: List<StudentItemData>
+    val students: List<StudentItemData>,
+    val isTeacher: Boolean = false
 )
 
 data class StudentItemData(

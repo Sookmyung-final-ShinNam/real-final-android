@@ -51,8 +51,8 @@ fun NavGraphBuilder.classroomNavGraph(navController: NavController) {
         ClassroomDetailScreen(
             classroomId = classroomId,
             onBack = { navController.popBackStack() },
-            onAssignmentsClick = {
-                navController.navigateTo(ClassroomRoutes.assignmentList(classroomId))
+            onAssignmentsClick = { isTeacher ->
+                navController.navigateTo(ClassroomRoutes.assignmentList(classroomId, isTeacher))
             },
             onStoriesClick = { week ->
                 navController.navigateTo(ClassroomRoutes.classroomStories(classroomId, week))
@@ -62,16 +62,18 @@ fun NavGraphBuilder.classroomNavGraph(navController: NavController) {
 
     composable(
         ClassroomRoutes.ASSIGNMENT_LIST,
-        arguments = listOf(navArgument("classroomId") { type = NavType.LongType })
+        arguments = listOf(
+            navArgument("classroomId") { type = NavType.LongType },
+            navArgument("isTeacher") { type = NavType.BoolType }
+        )
     ) { backStackEntry ->
         val classroomId = backStackEntry.arguments?.getLong("classroomId") ?: return@composable
+        val isTeacher = backStackEntry.arguments?.getBoolean("isTeacher") ?: false
         AssignmentListScreen(
             classroomId = classroomId,
+            isTeacher = isTeacher,
             onBack = { navController.popBackStack() },
-            onStartAssignment = { assignmentId ->
-                // 과제 시작 → 기존 생성 그래프로 이동 (assignment context는 ViewModel에서 처리)
-                navController.navigate(NavGraphs.CREATION)
-            }
+            onStartAssignment = { navController.navigate(NavGraphs.CREATION) }
         )
     }
 

@@ -31,7 +31,7 @@ import com.veryshinnam.myapp.core.orientation.OrientationManager
 fun ClassroomDetailScreen(
     classroomId: Long,
     onBack: () -> Unit,
-    onAssignmentsClick: () -> Unit,
+    onAssignmentsClick: (isTeacher: Boolean) -> Unit,
     onStoriesClick: (Int) -> Unit,
     vm: ClassroomDetailViewModel = hiltViewModel()
 ) {
@@ -61,6 +61,7 @@ fun ClassroomDetailScreen(
                 is ClassroomDetailUiState.Error -> LoadErrorView(message = state.message, onRetry = { vm.reload() })
                 is ClassroomDetailUiState.Success -> {
                     val detail = state.detail
+                    val isTeacher = state.isTeacher
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -94,7 +95,7 @@ fun ClassroomDetailScreen(
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 CircleButton(
                                     text = "과제 목록",
-                                    onClick = onAssignmentsClick,
+                                    onClick = { onAssignmentsClick(isTeacher) },
                                     modifier = Modifier.weight(1f)
                                 )
                                 CircleButton(

@@ -15,7 +15,7 @@ import javax.inject.Inject
 sealed interface ClassroomDetailUiState {
     data object Loading : ClassroomDetailUiState
     data class Error(val message: String) : ClassroomDetailUiState
-    data class Success(val detail: ClassroomDetailData) : ClassroomDetailUiState
+    data class Success(val detail: ClassroomDetailData, val isTeacher: Boolean) : ClassroomDetailUiState
 }
 
 @HiltViewModel
@@ -39,7 +39,7 @@ class ClassroomDetailViewModel @Inject constructor(
             _uiState.value = ClassroomDetailUiState.Loading
             try {
                 val detail = repository.getClassroomDetail(classroomId)
-                _uiState.value = ClassroomDetailUiState.Success(detail)
+                _uiState.value = ClassroomDetailUiState.Success(detail, detail.isTeacher)
             } catch (e: HttpException) {
                 if (e.code() != 401) _uiState.value = ClassroomDetailUiState.Error("학급 정보를 불러오지 못했어요.")
             } catch (e: Exception) {

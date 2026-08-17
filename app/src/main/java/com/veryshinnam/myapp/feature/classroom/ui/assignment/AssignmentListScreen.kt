@@ -34,6 +34,7 @@ import com.veryshinnam.myapp.core.orientation.OrientationManager
 @Composable
 fun AssignmentListScreen(
     classroomId: Long,
+    isTeacher: Boolean = false,
     onBack: () -> Unit,
     onStartAssignment: (Long) -> Unit,
     vm: AssignmentListViewModel = hiltViewModel()
@@ -85,17 +86,19 @@ fun AssignmentListScreen(
                                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                     color = colorResource(R.color.main_orange)
                                 )
-                                // 과제 등록 버튼 (선생님용 - 서버에서 권한 체크)
-                                OutlinedButton(
-                                    onClick = { showCreateSheet = true },
-                                    shape = RoundedCornerShape(20.dp),
-                                    border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.5.dp),
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = colorResource(R.color.main_orange)
-                                    ),
-                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-                                ) {
-                                    Text("+ 과제 등록", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                                // 과제 등록 버튼 (선생님만)
+                                if (isTeacher) {
+                                    OutlinedButton(
+                                        onClick = { showCreateSheet = true },
+                                        shape = RoundedCornerShape(20.dp),
+                                        border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.5.dp),
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            contentColor = colorResource(R.color.main_orange)
+                                        ),
+                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                                    ) {
+                                        Text("+ 과제 등록", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                                    }
                                 }
                             }
                         }
@@ -112,11 +115,14 @@ fun AssignmentListScreen(
                                 }
                             }
                         } else {
-                            itemsIndexed(state.assignments) { index, assignment ->
+                            itemsIndexed(state.assignments) { index, item ->
                                 AssignmentCard(
                                     week = index + 1,
-                                    assignment = assignment,
-                                    onStart = { onStartAssignment(assignment.assignmentId) }
+                                    assignment = item.data,
+                                    isTeacher = isTeacher,
+                                    submittedCount = item.submittedCount,
+                                    notSubmittedCount = item.notSubmittedCount,
+                                    onStart = { onStartAssignment(item.data.assignmentId) }
                                 )
                             }
                         }
@@ -243,7 +249,14 @@ private fun AssignmentTextField(
 }
 
 @Composable
-private fun AssignmentCard(week: Int, assignment: AssignmentData, onStart: () -> Unit) {
+private fun AssignmentCard(
+    week: Int,
+    assignment: AssignmentData,
+    isTeacher: Boolean = false,
+    submittedCount: Long = 0,
+    notSubmittedCount: Long = 0,
+    onStart: () -> Unit
+) {
     val dDay = assignment.dDay
     val dDayText = when {
         dDay > 0 -> "D-$dDay"
@@ -290,10 +303,31 @@ private fun AssignmentCard(week: Int, assignment: AssignmentData, onStart: () ->
 
         Spacer(Modifier.height(4.dp))
 
-        CircleButton(
-            text = if (dDay < 0) "마감된 과제" else "동화 만들기 시작",
-            onClick = { if (dDay >= 0) onStart() },
-            modifier = Modifier.fillMaxWidth()
-        )
+        if (isTeacher) {
+            // 선생님: 제출 현황
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(colorResource(R.color.main_orange_50), RoundedCornerShape(10.dp))
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("제출", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text("$submittedCount 명", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = colorResource(R.color.main_orange)))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("미제출", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text("$notSubmittedCount 명", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color(0xFFE53935)))
+                }
+            }
+        } else {
+            // 학생: 동화 만들기 버튼
+            CircleButton(
+                text = if (dDay < 0) "마감된 과제" else "동화 만들기 시작",
+                onClick = { if (dDay >= 0) onStart() },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }

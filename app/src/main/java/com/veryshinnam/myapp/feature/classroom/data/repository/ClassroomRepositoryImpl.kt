@@ -52,10 +52,14 @@ class ClassroomRepositoryImpl @Inject constructor(
 
     override suspend fun getClassroomDetail(classroomId: Long): ClassroomDetailData {
         val result = api.getClassroomDetail(classroomId).result ?: error("데이터를 불러오지 못했습니다.")
+        // 서버에서 joinStatus가 있으면 선생님 응답 (선생님은 학생 상태 볼 수 있음)
+        // 모든 학생 joinStatus가 null이면 학생 응답
+        val isTeacher = result.students.any { it.joinStatus != null }
         return ClassroomDetailData(
             name = result.name,
             points = result.points,
             createdAt = result.createdAt,
+            isTeacher = isTeacher,
             students = result.students.map {
                 StudentItemData(
                     number = it.number,

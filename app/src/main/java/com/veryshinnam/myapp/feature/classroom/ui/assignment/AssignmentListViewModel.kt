@@ -12,10 +12,16 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
 
+data class AssignmentWithCount(
+    val data: AssignmentData,
+    val submittedCount: Long = 0,
+    val notSubmittedCount: Long = 0
+)
+
 sealed interface AssignmentListUiState {
     data object Loading : AssignmentListUiState
     data class Error(val message: String) : AssignmentListUiState
-    data class Success(val assignments: List<AssignmentData>) : AssignmentListUiState
+    data class Success(val assignments: List<AssignmentWithCount>) : AssignmentListUiState
 }
 
 data class CreateAssignmentState(
@@ -31,6 +37,7 @@ class AssignmentListViewModel @Inject constructor(
 ) : ViewModel() {
 
     val classroomId: Long = savedStateHandle["classroomId"] ?: 0L
+    val isTeacher: Boolean = savedStateHandle["isTeacher"] ?: false
 
     private val _uiState = MutableStateFlow<AssignmentListUiState>(AssignmentListUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -45,7 +52,19 @@ class AssignmentListViewModel @Inject constructor(
             _uiState.value = AssignmentListUiState.Loading
             try {
                 val assignments = repository.getClassroomAssignments(classroomId)
-                _uiState.value = AssignmentListUiState.Success(assignments)
+
+                if (isTeacher) {
+                    // 선생님: 제출 현황 병합
+                    val teacherAll = runCatching { repository.getTeacherAssignments() }.getOrElse { emptyList() }
+                    val countMap = teacherAll.associateBy { it.assignmentId }
+                    val merged = assignments.map { a ->
+                        val tc = countMap[a.assignmentId]
+                        AssignmentWithCount(a, tc?.submittedCount ?: 0, tc?.notSubmittedCount ?: 0)
+                    }
+                    _uiState.value = AssignmentListUiState.Success(merged)
+                } else {
+                    _uiState.value = AssignmentListUiState.Success(assignments.map { AssignmentWithCount(it) })
+                }
             } catch (e: HttpException) {
                 if (e.code() != 401) _uiState.value = AssignmentListUiState.Error("과제 목록을 불러오지 못했어요.")
             } catch (e: Exception) {
