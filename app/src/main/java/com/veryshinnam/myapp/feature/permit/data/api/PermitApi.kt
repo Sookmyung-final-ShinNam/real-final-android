@@ -1,5 +1,6 @@
 package com.veryshinnam.myapp.feature.permit.data.api
 
+import com.veryshinnam.myapp.common.model.UserRole
 import com.veryshinnam.myapp.core.network.BaseResponse
 import com.veryshinnam.myapp.feature.permit.data.dto.EmailCodeRequest
 import com.veryshinnam.myapp.feature.permit.data.dto.JwtResult
@@ -13,7 +14,8 @@ interface PermitApi {
     // 사용자 활성화 및 토큰 조회 (로그인) api
     @PATCH("api/permit/login")
     suspend fun login(
-        @Query("tempCode") tempCode: String
+        @Query("tempCode") tempCode: String,
+        @Query("role") role: UserRole? = null
     ): BaseResponse<JwtResult>
 
     // 선생님 회원가입 인증코드 발송 api

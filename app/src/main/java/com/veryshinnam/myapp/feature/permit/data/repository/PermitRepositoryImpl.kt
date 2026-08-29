@@ -1,5 +1,6 @@
 package com.veryshinnam.myapp.feature.permit.data.repository
 
+import com.veryshinnam.myapp.common.model.UserRole
 import com.veryshinnam.myapp.core.network.BaseResponse
 import com.veryshinnam.myapp.feature.permit.data.dto.JwtResult
 import com.veryshinnam.myapp.feature.permit.data.api.PermitApi
@@ -12,10 +13,10 @@ class PermitRepositoryImpl  @Inject constructor(
 
     // 로그인
     override suspend fun login(
-        tempCode: String
-        // TODO: 학생, 선생 선택
+        tempCode: String,
+        role: UserRole?
     ): JwtResult {
-        val response: BaseResponse<JwtResult> = api.login(tempCode)
+        val response: BaseResponse<JwtResult> = api.login(tempCode, role)
 
         if (!response.isSuccess || response.result == null) {
             throw Exception("로그인 실패: ${response.message}")

@@ -2,6 +2,7 @@ package com.veryshinnam.myapp.feature.permit.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.veryshinnam.myapp.common.model.UserRole
 import com.veryshinnam.myapp.core.session.SessionManager
 import com.veryshinnam.myapp.feature.admin.data.repository.AdminRepository
 import com.veryshinnam.myapp.feature.permit.data.dto.EmailCodeRequest
@@ -89,8 +90,8 @@ class PermitViewModel @Inject constructor(
     }
 
     // 회원가입
-    fun signup(tempCode: String) {
-        saveToken(tempCode, isNewUser = true)
+    fun signup(tempCode: String, role: UserRole? = null) {
+        saveToken(tempCode, isNewUser = true, role = role)
     }
 
     // 로그인
@@ -99,12 +100,12 @@ class PermitViewModel @Inject constructor(
     }
 
     // 공통 로직
-    fun saveToken(tempCode: String, isNewUser: Boolean) {
+    fun saveToken(tempCode: String, isNewUser: Boolean, role: UserRole? = null) {
         viewModelScope.launch {
             _permitUiState.value = PermitUiState.Loading
 
             try {
-                val jwt = permitRepository.login(tempCode) // api 호출
+                val jwt = permitRepository.login(tempCode, role) // api 호출
 
                 // 세션 저장
                 sessionManager.saveToken(
@@ -116,6 +117,7 @@ class PermitViewModel @Inject constructor(
                 // 신규 유저인 경우 플래그 설정
                 if (isNewUser) sessionManager.saveNewUser(true)
 
+                // 관리자 체크
                 checkUserOrAdmin()
             } catch (e: Exception) {
                 _permitUiState.value = PermitUiState.Error("로그인 실패: ${e.message}")
