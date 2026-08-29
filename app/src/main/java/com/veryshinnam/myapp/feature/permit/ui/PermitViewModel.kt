@@ -4,10 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.veryshinnam.myapp.core.session.SessionManager
 import com.veryshinnam.myapp.feature.admin.data.repository.AdminRepository
+import com.veryshinnam.myapp.feature.permit.data.dto.EmailCodeRequest
 import com.veryshinnam.myapp.feature.permit.data.repository.PermitRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,7 +21,10 @@ class PermitViewModel @Inject constructor(
     private val sessionManager: SessionManager
 ) : ViewModel() {
     private val _permitUiState = MutableStateFlow<PermitUiState>(PermitUiState.Idle)
-    val permitUiState: StateFlow<PermitUiState> = _permitUiState
+    val permitUiState: StateFlow<PermitUiState> = _permitUiState.asStateFlow()
+
+    private val _emailVerificationState = MutableStateFlow(EmailVerificationState())
+    val emailVerificationState: StateFlow<EmailVerificationState> = _emailVerificationState.asStateFlow()
 
     // 액세스 토큰 존재 + 만료 확인
     fun checkAccessToken() {
@@ -129,5 +135,52 @@ class PermitViewModel @Inject constructor(
                 sessionManager.clearReviewState()
             }
         }
+    }
+
+    // 선생님 회원가입 인증 코드 발송
+    fun sendEmailCode(req: EmailCodeRequest.Send) {
+        viewModelScope.launch {
+            // 초기화
+            _emailVerificationState.update {
+                it.copy(isSendLoading = true, isSent = false, sendErrorMessage = null)
+            }
+
+            // api 요청
+            try {
+                permitRepository.sendEmailCode(req)
+                _emailVerificationState.update {
+                    it.copy(isSendLoading = false, isSent = true)
+                }
+            } catch (e: Exception) {
+                _emailVerificationState.update {
+                    it.copy(isSendLoading = false, sendErrorMessage = e.message ?: "인증 코드 발송에 실패했습니다.")
+                }
+            }
+        }
+    }
+
+    // 선생님 회원가입 인증 코드 검증
+    fun verifyEmailCode(req: EmailCodeRequest.Verification) {
+        viewModelScope.launch {
+            _emailVerificationState.update {
+                it.copy(isVerifyLoading = true, isVerified = false, verifyErrorMessage = null)
+            }
+
+            try {
+                permitRepository.verifyEmailCode(req)
+                _emailVerificationState.update {
+                    it.copy(isVerifyLoading = false, isVerified = true)
+                }
+            } catch (e: Exception) {
+                _emailVerificationState.update {
+                    it.copy(isVerifyLoading = false, verifyErrorMessage = e.message ?: "인증 코드가 일치하지 않습니다.")
+                }
+            }
+        }
+    }
+
+    // 인증 코드 진행 상태 초기화
+    fun resetEmailVerification() {
+        _emailVerificationState.value = EmailVerificationState()
     }
 }

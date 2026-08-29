@@ -3,6 +3,7 @@ package com.veryshinnam.myapp.feature.permit.data.repository
 import com.veryshinnam.myapp.core.network.BaseResponse
 import com.veryshinnam.myapp.feature.permit.data.dto.JwtResult
 import com.veryshinnam.myapp.feature.permit.data.api.PermitApi
+import com.veryshinnam.myapp.feature.permit.data.dto.EmailCodeRequest
 import javax.inject.Inject
 
 class PermitRepositoryImpl  @Inject constructor(
@@ -10,7 +11,10 @@ class PermitRepositoryImpl  @Inject constructor(
 ) : PermitRepository {
 
     // 로그인
-    override suspend fun login(tempCode: String): JwtResult {
+    override suspend fun login(
+        tempCode: String
+        // TODO: 학생, 선생 선택
+    ): JwtResult {
         val response: BaseResponse<JwtResult> = api.login(tempCode)
 
         if (!response.isSuccess || response.result == null) {
@@ -18,5 +22,27 @@ class PermitRepositoryImpl  @Inject constructor(
         }
 
         return response.result
+    }
+
+    // 선생님 회원가입 인증코드 발송
+    override suspend fun sendEmailCode(request: EmailCodeRequest.Send): Boolean {
+        val response: BaseResponse<Unit> = api.sendEmailCode(request)
+
+        if (!response.isSuccess) {
+            throw Exception("인증코드 발송 실패: ${response.message}")
+        }
+
+        return true;
+    }
+
+    // 선생님 회원가입 인증코드 검증
+    override suspend fun verifyEmailCode(request: EmailCodeRequest.Verification): Boolean {
+        val response: BaseResponse<Unit> = api.verifyEmailCode(request)
+
+        if (!response.isSuccess) {
+            throw Exception("인증코드 검증 실패: ${response.message}")
+        }
+
+        return true;
     }
 }
