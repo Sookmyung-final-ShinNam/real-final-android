@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.veryshinnam.myapp.common.model.UserRole
 import com.veryshinnam.myapp.core.session.SessionManager
-import com.veryshinnam.myapp.feature.admin.data.repository.AdminRepository
 import com.veryshinnam.myapp.feature.permit.data.dto.EmailCodeRequest
 import com.veryshinnam.myapp.feature.permit.data.repository.PermitRepository
+import com.veryshinnam.myapp.feature.settings.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PermitViewModel @Inject constructor(
     private val permitRepository: PermitRepository,
-    private val adminRepository: AdminRepository,
+    private val userRepository: UserRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
     private val _permitUiState = MutableStateFlow<PermitUiState>(PermitUiState.Idle)
@@ -64,7 +64,7 @@ class PermitViewModel @Inject constructor(
 
                 // 3. 일반 토큰 검증 및 사용자/관리자 체크
                 if (token != null && !isExpired) {
-                    checkUserOrAdmin()
+                    checkAdminRole()
                 } else {
                     // 토큰 없거나 만료됨
                     if (token != null) {
@@ -79,10 +79,9 @@ class PermitViewModel @Inject constructor(
     }
 
     // 로그인 사용자 관리자 체크
-    private suspend fun checkUserOrAdmin() {
+    private suspend fun checkAdminRole() {
         try {
-            val isAdmin = adminRepository.checkIsAdmin()
-
+            val isAdmin = userRepository.checkRole(UserRole.ADMIN)
             _permitUiState.value = if (isAdmin) PermitUiState.Admin else PermitUiState.User
         } catch (e: Exception) {
             _permitUiState.value = PermitUiState.Error("관리자 체크 실패: ${e.message}")
@@ -118,7 +117,7 @@ class PermitViewModel @Inject constructor(
                 if (isNewUser) sessionManager.saveNewUser(true)
 
                 // 관리자 체크
-                checkUserOrAdmin()
+                checkAdminRole()
             } catch (e: Exception) {
                 _permitUiState.value = PermitUiState.Error("로그인 실패: ${e.message}")
             }

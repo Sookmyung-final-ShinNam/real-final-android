@@ -1,5 +1,6 @@
 package com.veryshinnam.myapp.feature.permit.data.repository
 
+import com.google.gson.Gson
 import com.veryshinnam.myapp.common.model.UserRole
 import com.veryshinnam.myapp.core.network.BaseResponse
 import com.veryshinnam.myapp.feature.permit.data.dto.JwtResult
@@ -27,23 +28,37 @@ class PermitRepositoryImpl  @Inject constructor(
 
     // 선생님 회원가입 인증코드 발송
     override suspend fun sendEmailCode(request: EmailCodeRequest.Send): Boolean {
-        val response: BaseResponse<Unit> = api.sendEmailCode(request)
+        try {
+            val response: BaseResponse<Unit> = api.sendEmailCode(request)
+            if (!response.isSuccess) {
+                throw Exception(response.message)
+            }
+            return true
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val message = try {
+                errorBody?.let { Gson().fromJson(it, BaseResponse::class.java).message }
+            } catch (_: Exception) { null }
 
-        if (!response.isSuccess) {
-            throw Exception("인증코드 발송 실패: ${response.message}")
+            throw Exception(message ?: "인증 코드 발송에 실패했습니다.")
         }
-
-        return true;
     }
 
     // 선생님 회원가입 인증코드 검증
     override suspend fun verifyEmailCode(request: EmailCodeRequest.Verification): Boolean {
-        val response: BaseResponse<Unit> = api.verifyEmailCode(request)
+        try {
+            val response: BaseResponse<Unit> = api.verifyEmailCode(request)
+            if (!response.isSuccess) {
+                throw Exception(response.message)
+            }
+            return true;
+        }  catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val message = try {
+                errorBody?.let { Gson().fromJson(it, BaseResponse::class.java).message }
+            } catch (_: Exception) { null }
 
-        if (!response.isSuccess) {
-            throw Exception("인증코드 검증 실패: ${response.message}")
+            throw Exception(message ?: "인증 코드가 일치하지 않습니다.")
         }
-
-        return true;
     }
 }

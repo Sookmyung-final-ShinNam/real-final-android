@@ -520,42 +520,23 @@ fun SignUpScreen(
                         horizontalArrangement = Arrangement.spacedBy(verticalPadding),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        UserRole.entries.forEach { role ->
-                            val isSelected = selectedRole == role
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(48.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable {
-                                        selectedRole = role
-                                        vm.resetEmailVerification()
-                                    }
-                                    .semantics {
-                                        this.role = Role.RadioButton
-                                        contentDescription = if (role == UserRole.BASIC) "학생으로 가입" else "선생님으로 가입"
-                                        stateDescription = if (isSelected) "선택됨" else "선택되지 않음"
-                                    }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.CheckCircle,
-                                    contentDescription = null,
-                                    tint = if (isSelected) colorResource(R.color.main_orange) else colorResource(R.color.light_gray),
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clearAndSetSemantics { }
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = if (role == UserRole.BASIC) "학생" else "선생님",
-                                    style = subTextStyle.copy(
-                                        color = if (isSelected) Color.Black else Color.Gray,
-                                        fontWeight = Bold
-                                    )
-                                )
-                            }
-                        }
+                        RoleSelectItem(
+                            role = UserRole.BASIC,
+                            label = "학생",
+                            labelTextStyle = subTextStyle,
+                            isSelected = selectedRole == UserRole.BASIC,
+                            onClick = { selectedRole = UserRole.BASIC; vm.resetEmailVerification() },
+                            modifier = Modifier.weight(1f)
+                        )
+                        RoleSelectItem(
+                            role = UserRole.TEACHER,
+                            label = "선생님",
+                            labelTextStyle = subTextStyle,
+                            isSelected = selectedRole == UserRole.TEACHER,
+                            onClick = { selectedRole = UserRole.TEACHER; vm.resetEmailVerification() },
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
                     }
 
                     // 이메일 인증 섹션만 AnimatedVisibility로 토글
@@ -590,7 +571,6 @@ fun SignUpScreen(
                             verticalArrangement = Arrangement.spacedBy(verticalPadding)
                         ) {
                             // 이메일 입력 + 발송 버튼
-                            // nimuyman@gamilcom
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(verticalPadding),
@@ -602,14 +582,14 @@ fun SignUpScreen(
                                     placeholder = { Text("이메일을 입력해 주세요.", style = descTextStyle.copy(color = Color.Gray)) },
                                     singleLine = true,
                                     textStyle = descTextStyle,
-                                    enabled = !emailState.isSent || emailState.sendErrorMessage != null,
+                                    enabled = (!emailState.isSent || emailState.sendErrorMessage != null) && !emailState.isVerified,
                                     isError = emailState.sendErrorMessage != null,
                                     modifier = Modifier.weight(1f),
                                     colors = textFieldColors
                                 )
                                 Button(
-                                    onClick = { vm.sendEmailCode(EmailCodeRequest.Send(tempCode, email)) },
-                                    enabled = email.isNotBlank() && !emailState.isSendLoading,
+                                    onClick = { vm.sendEmailCode(EmailCodeRequest.Send(tempCode, email.trim())) },
+                                    enabled = email.isNotBlank() && !emailState.isSendLoading && !emailState.isVerified,
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = colorResource(R.color.main_orange),
                                         contentColor = Color.White,
@@ -636,7 +616,7 @@ fun SignUpScreen(
                                     OutlinedTextField(
                                         value = code,
                                         onValueChange = { code = it },
-                                        placeholder = { Text("인증코드를 입력해 주세요. (${remainingSeconds}초)", style = descTextStyle.copy(color = Color.Gray)) },
+                                        placeholder = { Text("인증 코드를 입력해 주세요. (${remainingSeconds}초)", style = descTextStyle.copy(color = Color.Gray)) },
                                         singleLine = true,
                                         enabled = !emailState.isVerified,
                                         isError = emailState.verifyErrorMessage != null,
@@ -644,7 +624,7 @@ fun SignUpScreen(
                                         colors = textFieldColors,
                                     )
                                     Button(
-                                        onClick = { vm.verifyEmailCode(EmailCodeRequest.Verification(tempCode, code)) },
+                                        onClick = { vm.verifyEmailCode(EmailCodeRequest.Verification(tempCode, code.trim())) },
                                         enabled = code.isNotBlank() && !emailState.isVerifyLoading && !emailState.isVerified,
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = colorResource(R.color.main_orange),
@@ -762,5 +742,45 @@ fun SignUpScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun RoleSelectItem(
+    role: UserRole,
+    label: String,
+    labelTextStyle: TextStyle,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .height(48.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .semantics {
+                this.role = Role.RadioButton
+                contentDescription = "${label}으로 가입"
+                stateDescription = if (isSelected) "선택됨" else "선택되지 않음"
+            }
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.CheckCircle,
+            contentDescription = null,
+            tint = if (isSelected) colorResource(R.color.main_orange) else colorResource(R.color.light_gray),
+            modifier = Modifier
+                .size(24.dp)
+                .clearAndSetSemantics { }
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = label,
+            style = labelTextStyle.copy(
+                color = if (isSelected) Color.Black else Color.Gray,
+                fontWeight = Bold
+            )
+        )
     }
 }
