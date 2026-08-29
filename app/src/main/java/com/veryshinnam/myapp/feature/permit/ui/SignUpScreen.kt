@@ -1,16 +1,23 @@
 package com.veryshinnam.myapp.feature.permit.ui
 
 import android.content.pm.ActivityInfo
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,8 +28,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -32,6 +39,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -61,7 +71,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.veryshinnam.myapp.R
 import com.veryshinnam.myapp.common.component.LogoBar
+import com.veryshinnam.myapp.common.model.UserRole
 import com.veryshinnam.myapp.core.orientation.OrientationManager
+import com.veryshinnam.myapp.feature.permit.data.dto.EmailCodeRequest
+import kotlinx.coroutines.delay
 
 @Composable
 fun SignUpScreen(
@@ -74,10 +87,26 @@ fun SignUpScreen(
     descTextStyle: TextStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = SemiBold),
     vm: PermitViewModel = hiltViewModel(),
 ) {
-    var checked by remember { mutableStateOf(false) }
-    val state by vm.permitUiState.collectAsStateWithLifecycle()
+    var selectedRole by remember { mutableStateOf(UserRole.BASIC) } // 역할 선택
+    var checked by remember { mutableStateOf(false) } // 약관 동의
+
+    val uiState by vm.permitUiState.collectAsStateWithLifecycle()
+    val emailState by vm.emailVerificationState.collectAsStateWithLifecycle()
 
     val scrollState = rememberScrollState()
+    val canSubmit = checked && (selectedRole == UserRole.BASIC || emailState.isVerified)
+
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = Color.White,
+        unfocusedContainerColor = Color.White,
+        disabledContainerColor = Color.White.copy(alpha = 0.6f),
+        errorContainerColor = Color.White,
+
+        focusedBorderColor = colorResource(R.color.main_orange),
+        unfocusedBorderColor = colorResource(R.color.main_orange),
+        disabledBorderColor = colorResource(R.color.main_orange),
+        errorBorderColor = Color.Red
+    )
 
     // 세로 모드 고정
     SideEffect {
@@ -87,12 +116,13 @@ fun SignUpScreen(
     }
 
     // 로그인 결과 감지
-    LaunchedEffect(state) {
-        if (state is PermitUiState.User) {
+    LaunchedEffect(uiState) {
+        if (uiState is PermitUiState.User) {
             onHome()
         }
     }
 
+    // 기본 여백 설정
     Scaffold(
         containerColor = colorResource(id = R.color.background_yellow),
         topBar = {
@@ -107,15 +137,16 @@ fun SignUpScreen(
             Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .padding(top = horizontalPadding, start = horizontalPadding, end = horizontalPadding)
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = horizontalPadding, start = horizontalPadding, end = horizontalPadding),
+                    .weight(1f)
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(verticalPadding)
             ) {
@@ -146,7 +177,7 @@ fun SignUpScreen(
                 // 이용약관
                 Column(modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = verticalPadding*2)
+                    .padding(horizontal = verticalPadding * 2)
                 ){
                     Column(
                         modifier = Modifier
@@ -159,7 +190,7 @@ fun SignUpScreen(
                                 shape = RoundedCornerShape(16.dp)
                             )
                             .verticalScroll(scrollState)
-                            .padding(verticalPadding*2),
+                            .padding(verticalPadding * 2),
                         verticalArrangement = Arrangement.spacedBy(verticalPadding*2)
                     ) {
                         Text(
@@ -478,84 +509,257 @@ fun SignUpScreen(
                     }
                 }
 
-                // 모두 동의
-                Row(
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.Start,
-                    modifier = Modifier.clickable { checked = !checked }
-                        .padding(horizontal = verticalPadding*2)
-                        .semantics {
-                            role = Role.Checkbox
-                            contentDescription = "위 약관을 모두 확인하였으며, 이에 동의합니다."
-                            stateDescription = if (checked) "동의됨" else "동의되지 않음"
-                        }
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.CheckCircle,
-                        contentDescription = "동의 버튼",
-                        tint = if (checked) colorResource(R.color.main_orange) else colorResource(R.color.light_gray),
-                        modifier = Modifier.size(24.dp)
-                            .clearAndSetSemantics { }
-                    )
-
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    Text(
-                        text = "위 약관을 모두 확인하였으며, 이에 동의합니다.".replace("", "\u200B"),
-                        style = subTextStyle.copy(
-                            color = if (checked) Color.Black else Color.LightGray,
-                            fontWeight = Bold
-                        ),
-                        modifier = Modifier.clearAndSetSemantics { }
-                    )
-                }
-
-                // 하단 버튼
+                // 역할 선택 (회원유형 제목 + 라디오 버튼 + 입력 필드 2개)
                 Spacer(Modifier.height(verticalPadding))
-                Button(
-                    onClick = { if (checked) vm.signup(tempCode) },
-                    enabled = checked,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = Color.White,
-                        disabledContainerColor = Color.Transparent,
-                        disabledContentColor = Color.White.copy(alpha = 0.6f)
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = if (checked) {
-                                    listOf(
-                                        colorResource(R.color.main_orange),
-                                        colorResource(R.color.dark_orange),
-                                    )
-                                } else {
-                                    listOf(
-                                        colorResource(R.color.main_orange).copy(alpha = 0.3f),
-                                        colorResource(R.color.dark_orange).copy(alpha = 0.3f)
-                                    )
-                                }
-                            ),
-                            shape = RoundedCornerShape(16.dp),
-                        )
-                        .border(
-                            width = 2.dp,
-                            color =
-                                if (checked) colorResource(id = R.color.main_orange)
-                                else colorResource(id = R.color.main_orange).copy(0.3f),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                ) {
+                Column {
                     Text(
-                        text = "시작하기",
-                        style = titleTextStyle.copy(
-                            fontSize = titleTextStyle.fontSize * 1.2f
-                        ),
-                        modifier = Modifier.padding(vertical = verticalPadding)
+                        text = "회원 유형",
+                        style = titleTextStyle
                     )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(verticalPadding),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        UserRole.entries.forEach { role ->
+                            val isSelected = selectedRole == role
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        selectedRole = role
+                                        vm.resetEmailVerification()
+                                    }
+                                    .semantics {
+                                        this.role = Role.RadioButton
+                                        contentDescription = if (role == UserRole.BASIC) "학생으로 가입" else "선생님으로 가입"
+                                        stateDescription = if (isSelected) "선택됨" else "선택되지 않음"
+                                    }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.CheckCircle,
+                                    contentDescription = null,
+                                    tint = if (isSelected) colorResource(R.color.main_orange) else colorResource(R.color.light_gray),
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clearAndSetSemantics { }
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (role == UserRole.BASIC) "학생" else "선생님",
+                                    style = subTextStyle.copy(
+                                        color = if (isSelected) Color.Black else Color.Gray,
+                                        fontWeight = Bold
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    // 이메일 인증 섹션만 AnimatedVisibility로 토글
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = selectedRole == UserRole.TEACHER,
+                        enter = expandVertically(
+                            animationSpec = tween(300),
+                            expandFrom = Alignment.Top
+                        ) + fadeIn(animationSpec = tween(300)),
+                        exit = shrinkVertically(
+                            animationSpec = tween(300),
+                            shrinkTowards = Alignment.Top
+                        ) + fadeOut(animationSpec = tween(300))
+                    ) {
+                        var email by remember { mutableStateOf("") }
+                        var code by remember { mutableStateOf("") }
+                        var remainingSeconds by remember { mutableStateOf(0) }
+
+                        LaunchedEffect(emailState.isSent) {
+                            if (emailState.isSent) {
+                                for (sec in 300 downTo 0) {
+                                    remainingSeconds = sec
+                                    delay(1000)
+                                }
+                            }
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = verticalPadding, vertical = verticalPadding),
+                            verticalArrangement = Arrangement.spacedBy(verticalPadding)
+                        ) {
+                            // 이메일 입력 + 발송 버튼
+                            // nimuyman@gamilcom
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(verticalPadding),
+                                modifier = Modifier.height(IntrinsicSize.Min)
+                            ) {
+                                OutlinedTextField(
+                                    value = email,
+                                    onValueChange = { email = it },
+                                    placeholder = { Text("이메일을 입력해 주세요.", style = descTextStyle.copy(color = Color.Gray)) },
+                                    singleLine = true,
+                                    textStyle = descTextStyle,
+                                    enabled = !emailState.isSent || emailState.sendErrorMessage != null,
+                                    isError = emailState.sendErrorMessage != null,
+                                    modifier = Modifier.weight(1f),
+                                    colors = textFieldColors
+                                )
+                                Button(
+                                    onClick = { vm.sendEmailCode(EmailCodeRequest.Send(tempCode, email)) },
+                                    enabled = email.isNotBlank() && !emailState.isSendLoading,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = colorResource(R.color.main_orange),
+                                        contentColor = Color.White,
+                                        disabledContainerColor =colorResource(R.color.main_orange).copy(alpha = 0.6f),
+                                        disabledContentColor = Color.White.copy(alpha = 0.6f)
+                                    ),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.fillMaxHeight().wrapContentWidth(),
+                                    contentPadding = PaddingValues(horizontal = 12.dp)
+                                ) {
+                                    Text(if (emailState.isSendLoading) "발송 중" else "인증 요청", style = descTextStyle)
+                                }
+                            }
+                            emailState.sendErrorMessage?.let {
+                                Text(it, color = Color.Red, style = descTextStyle)
+                            }
+
+                            if (emailState.isSent) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(verticalPadding),
+                                    modifier = Modifier.height(IntrinsicSize.Min)
+                                ) {
+                                    OutlinedTextField(
+                                        value = code,
+                                        onValueChange = { code = it },
+                                        placeholder = { Text("인증코드를 입력해 주세요. (${remainingSeconds}초)", style = descTextStyle.copy(color = Color.Gray)) },
+                                        singleLine = true,
+                                        enabled = !emailState.isVerified,
+                                        isError = emailState.verifyErrorMessage != null,
+                                        modifier = Modifier.weight(1f),
+                                        colors = textFieldColors,
+                                    )
+                                    Button(
+                                        onClick = { vm.verifyEmailCode(EmailCodeRequest.Verification(tempCode, code)) },
+                                        enabled = code.isNotBlank() && !emailState.isVerifyLoading && !emailState.isVerified,
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = colorResource(R.color.main_orange),
+                                            contentColor = Color.White,
+                                            disabledContainerColor =colorResource(R.color.main_orange).copy(alpha = 0.6f),
+                                            disabledContentColor = Color.White.copy(alpha = 0.6f)
+                                        ),
+                                        shape = RoundedCornerShape(12.dp),
+                                        modifier = Modifier.fillMaxHeight().wrapContentWidth(),
+                                        contentPadding = PaddingValues(horizontal = 12.dp)
+                                    ) {
+                                        Text(if (emailState.isVerifyLoading) "확인 중" else "인증 확인", style = descTextStyle)
+                                    }
+                                }
+
+                                when {
+                                    emailState.isVerified -> Text("인증되었습니다.", color = Color(0xFF2E7D32), style = descTextStyle)
+                                    emailState.verifyErrorMessage != null -> Text(emailState.verifyErrorMessage!!, color = Color.Red, style = descTextStyle)
+                                }
+                            }
+                        }
+                    }
                 }
+            }
+
+            // 모두 동의
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier
+                    .height(48.dp)
+                    .clickable { checked = !checked }
+                    .semantics {
+                        role = Role.Checkbox
+                        contentDescription = "위 약관을 모두 확인하였으며, 이에 동의합니다."
+                        stateDescription = if (checked) "동의됨" else "동의되지 않음"
+                    }
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.CheckCircle,
+                    contentDescription = "동의 버튼",
+                    tint = if (checked) colorResource(R.color.main_orange) else colorResource(R.color.light_gray),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clearAndSetSemantics { }
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "위 약관을 모두 확인하였으며, 이에 동의합니다.".replace("", "\u200B"),
+                    style = subTextStyle.copy(
+                        color = if (checked) Color.Black else Color.LightGray,
+                        fontWeight = Bold
+                    ),
+                    modifier = Modifier.clearAndSetSemantics { }
+                )
+            }
+
+            // 하단 영역
+            Spacer(Modifier.height(verticalPadding))
+            HorizontalDivider(
+                color = colorResource(R.color.main_orange),
+                thickness = 2.dp
+            )
+            Spacer(Modifier.height(verticalPadding))
+            // 하단 시작하기 버튼
+            Button(
+                onClick = {
+                    if (canSubmit) {
+                        vm.signup(
+                            tempCode = tempCode,
+                            role = if (selectedRole == UserRole.TEACHER) UserRole.TEACHER else UserRole.BASIC
+                        )
+                    }
+                },
+                enabled = canSubmit,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White,
+                    disabledContainerColor = Color.Transparent,
+                    disabledContentColor = Color.White.copy(alpha = 0.6f)
+                ),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = if (canSubmit) {
+                                listOf(
+                                    colorResource(R.color.main_orange),
+                                    colorResource(R.color.dark_orange),
+                                )
+                            } else {
+                                listOf(
+                                    colorResource(R.color.main_orange).copy(alpha = 0.3f),
+                                    colorResource(R.color.dark_orange).copy(alpha = 0.3f)
+                                )
+                            }
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                    )
+                    .border(
+                        width = 2.dp,
+                        color =
+                            if (canSubmit) colorResource(id = R.color.main_orange)
+                            else colorResource(id = R.color.main_orange).copy(0.3f),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Text(
+                    text = "시작하기",
+                    style = titleTextStyle.copy(
+                        fontSize = titleTextStyle.fontSize * 1.2f
+                    ),
+                    modifier = Modifier.padding(vertical = verticalPadding)
+                )
             }
         }
     }
