@@ -1,5 +1,7 @@
 package com.veryshinnam.myapp.feature.classroom.data.dto
 
+import com.google.gson.annotations.SerializedName
+
 // --- 요청 ---
 // 학급 생성 요청
 data class CreateClassroomRequest(
@@ -61,7 +63,9 @@ data class AssignmentResult(
     val assignmentId: Long,
     val title: String,
     val description: String?,
-    val dDay: Long,
+    // 서버(Lombok getDDay + Jackson)는 필드명을 "dday"로 내려줌. 값이 없으면 null > 마감일로 직접 계산
+    @SerializedName(value = "dDay", alternate = ["dday", "DDay"])
+    val dDay: Long?,
     val dueAt: String,
     val submittedCount: Int?,
     val notSubmittedCount: Int?,
