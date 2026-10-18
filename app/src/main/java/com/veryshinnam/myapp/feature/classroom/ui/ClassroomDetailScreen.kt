@@ -49,7 +49,6 @@ import com.veryshinnam.myapp.feature.classroom.component.ClassroomLoading
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomScaffold
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomSquareButton
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomCollectionButton
-import com.veryshinnam.myapp.feature.classroom.component.ImminentAssignmentNotice
 import com.veryshinnam.myapp.feature.home.component.HomeFavoriteCarousel
 import com.veryshinnam.myapp.feature.home.model.FavoriteData
 import com.veryshinnam.myapp.common.model.ImageType
@@ -213,12 +212,6 @@ fun ClassroomDetailScreen(
                         // --- 학생 ---
                         Spacer(Modifier.height(spacerPadding))
 
-                        // 임박한 과제 (글씨로만 표시) + 과제 전체 보기 링크
-                        ImminentAssignmentNotice(
-                            assignments = state.assignments,
-                            onShowAllClick = onAssignmentsClick
-                        )
-
                         // 즐겨찾기한 캐릭터 카드 (홈과 같은 카드, 내가 만든 것 + 친구가 만든 것, 홈과 합쳐 5개 한도)
                         Box(
                             modifier = Modifier
@@ -244,14 +237,26 @@ fun ClassroomDetailScreen(
                             )
                         }
 
-                        // 보관함 (홈 화면의 보관함 아이콘)
-                        ClassroomCollectionButton(
-                            onClick = onStoriesClick,
+                        // 과제 보기 / 보관함 (같은 크기의 버튼 2개)
+                        Row(
                             modifier = Modifier
-                                .fillMaxWidth(0.4f)
+                                .fillMaxWidth(0.72f)
                                 .align(Alignment.CenterHorizontally)
-                                .padding(bottom = spacerPadding)
-                        )
+                                .padding(bottom = spacerPadding),
+                            horizontalArrangement = Arrangement.spacedBy(spacerPadding)
+                        ) {
+                            ClassroomSquareButton(
+                                text = "과제\n보기",
+                                onClick = onAssignmentsClick,
+                                modifier = Modifier.weight(1f).aspectRatio(1f)
+                            )
+
+                            // 보관함 (홈 화면의 보관함 아이콘)
+                            ClassroomCollectionButton(
+                                onClick = onStoriesClick,
+                                modifier = Modifier.weight(1f).aspectRatio(1f)
+                            )
+                        }
                     }
                 }
             }
