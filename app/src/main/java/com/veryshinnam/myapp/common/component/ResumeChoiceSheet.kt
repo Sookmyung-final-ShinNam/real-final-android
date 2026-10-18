@@ -110,7 +110,8 @@ private fun SheetChoiceButton(
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isPrimary) colorResource(R.color.main_orange_50) else Color.White.copy(alpha = 0.35f)
+            // 이어하기: 연한 주황 / 새로 만들기: 흰색 (주황 시트 위에서 두 버튼이 또렷이 구분되도록)
+            containerColor = if (isPrimary) colorResource(R.color.main_orange_50) else Color.White
         ),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
@@ -120,7 +121,7 @@ private fun SheetChoiceButton(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge.copy(
-                color = if (isPrimary) Color.Black else Color.White,
+                color = if (isPrimary) Color.Black else colorResource(R.color.main_orange_shade),
                 fontWeight = FontWeight.Bold
             ),
             modifier = Modifier.padding(4.dp)

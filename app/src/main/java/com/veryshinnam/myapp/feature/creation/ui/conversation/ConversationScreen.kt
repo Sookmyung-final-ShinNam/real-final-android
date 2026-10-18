@@ -490,8 +490,9 @@ fun ConversationScreen(
 
     if (isWarning) {
         WarningConfirmSheet(
-            warningText  = "대화를 그만 진행할까요?\n지금까지 이야기한 내용은 저장되지 않아요!",
-            confirmText = "그만하기",
+            // 진행 상황은 서버에 저장돼 있어 이어하기로 이어갈 수 있음 (현재 단계는 처음부터 다시)
+            warningText  = "만들던 동화를 잠시 멈출까요?\n나중에 '이어하기'로 이어서 만들 수 있어요.\n(지금 단계는 이어할 때 처음부터 다시 해요)",
+            confirmText = "나가기",
             onDismiss = { isWarning = false },
             onConfirm = {
                 isWarning = false
