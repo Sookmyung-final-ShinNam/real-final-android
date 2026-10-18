@@ -10,6 +10,7 @@ data class CharacterDetailResult (
     val personality: String,
     val important: Boolean,
     val createTime: String,
+    val creatorNickname: String? = null, // 만든 사용자 닉네임
     val storyId: Long,
     val storyTitle: String,
     val imageStoryUrl: String,

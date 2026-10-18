@@ -12,4 +12,5 @@ data class CharacterResult(
     val imageUrl: String?,
     val important: Boolean,
     val createTime: String,
+    val creatorNickname: String? = null, // 학급 동화 조회에서만 내려옴 (만든 사용자 닉네임)
 )

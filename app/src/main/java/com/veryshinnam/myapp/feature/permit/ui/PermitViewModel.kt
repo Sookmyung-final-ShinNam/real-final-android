@@ -2,23 +2,30 @@ package com.veryshinnam.myapp.feature.permit.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.veryshinnam.myapp.common.model.UserRole
 import com.veryshinnam.myapp.core.session.SessionManager
-import com.veryshinnam.myapp.feature.admin.data.repository.AdminRepository
+import com.veryshinnam.myapp.feature.permit.data.dto.EmailCodeRequest
 import com.veryshinnam.myapp.feature.permit.data.repository.PermitRepository
+import com.veryshinnam.myapp.feature.settings.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PermitViewModel @Inject constructor(
     private val permitRepository: PermitRepository,
-    private val adminRepository: AdminRepository,
+    private val userRepository: UserRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
     private val _permitUiState = MutableStateFlow<PermitUiState>(PermitUiState.Idle)
-    val permitUiState: StateFlow<PermitUiState> = _permitUiState
+    val permitUiState: StateFlow<PermitUiState> = _permitUiState.asStateFlow()
+
+    private val _emailVerificationState = MutableStateFlow(EmailVerificationState())
+    val emailVerificationState: StateFlow<EmailVerificationState> = _emailVerificationState.asStateFlow()
 
     // 액세스 토큰 존재 + 만료 확인
     fun checkAccessToken() {
@@ -57,7 +64,7 @@ class PermitViewModel @Inject constructor(
 
                 // 3. 일반 토큰 검증 및 사용자/관리자 체크
                 if (token != null && !isExpired) {
-                    checkUserOrAdmin()
+                    checkAdminRole()
                 } else {
                     // 토큰 없거나 만료됨
                     if (token != null) {
@@ -72,10 +79,9 @@ class PermitViewModel @Inject constructor(
     }
 
     // 로그인 사용자 관리자 체크
-    private suspend fun checkUserOrAdmin() {
+    private suspend fun checkAdminRole() {
         try {
-            val isAdmin = adminRepository.checkIsAdmin()
-
+            val isAdmin = userRepository.checkRole(UserRole.ADMIN)
             _permitUiState.value = if (isAdmin) PermitUiState.Admin else PermitUiState.User
         } catch (e: Exception) {
             _permitUiState.value = PermitUiState.Error("관리자 체크 실패: ${e.message}")
@@ -83,8 +89,8 @@ class PermitViewModel @Inject constructor(
     }
 
     // 회원가입
-    fun signup(tempCode: String) {
-        saveToken(tempCode, isNewUser = true)
+    fun signup(tempCode: String, role: UserRole? = null) {
+        saveToken(tempCode, isNewUser = true, role = role)
     }
 
     // 로그인
@@ -93,12 +99,12 @@ class PermitViewModel @Inject constructor(
     }
 
     // 공통 로직
-    fun saveToken(tempCode: String, isNewUser: Boolean) {
+    fun saveToken(tempCode: String, isNewUser: Boolean, role: UserRole? = null) {
         viewModelScope.launch {
             _permitUiState.value = PermitUiState.Loading
 
             try {
-                val jwt = permitRepository.login(tempCode) // api 호출
+                val jwt = permitRepository.login(tempCode, role) // api 호출
 
                 // 세션 저장
                 sessionManager.saveToken(
@@ -110,7 +116,8 @@ class PermitViewModel @Inject constructor(
                 // 신규 유저인 경우 플래그 설정
                 if (isNewUser) sessionManager.saveNewUser(true)
 
-                checkUserOrAdmin()
+                // 관리자 체크
+                checkAdminRole()
             } catch (e: Exception) {
                 _permitUiState.value = PermitUiState.Error("로그인 실패: ${e.message}")
             }
@@ -129,5 +136,52 @@ class PermitViewModel @Inject constructor(
                 sessionManager.clearReviewState()
             }
         }
+    }
+
+    // 선생님 회원가입 인증 코드 발송
+    fun sendEmailCode(req: EmailCodeRequest.Send) {
+        viewModelScope.launch {
+            // 초기화
+            _emailVerificationState.update {
+                it.copy(isSendLoading = true, isSent = false, sendErrorMessage = null)
+            }
+
+            // api 요청
+            try {
+                permitRepository.sendEmailCode(req)
+                _emailVerificationState.update {
+                    it.copy(isSendLoading = false, isSent = true)
+                }
+            } catch (e: Exception) {
+                _emailVerificationState.update {
+                    it.copy(isSendLoading = false, sendErrorMessage = e.message ?: "인증 코드 발송에 실패했습니다.")
+                }
+            }
+        }
+    }
+
+    // 선생님 회원가입 인증 코드 검증
+    fun verifyEmailCode(req: EmailCodeRequest.Verification) {
+        viewModelScope.launch {
+            _emailVerificationState.update {
+                it.copy(isVerifyLoading = true, isVerified = false, verifyErrorMessage = null)
+            }
+
+            try {
+                permitRepository.verifyEmailCode(req)
+                _emailVerificationState.update {
+                    it.copy(isVerifyLoading = false, isVerified = true)
+                }
+            } catch (e: Exception) {
+                _emailVerificationState.update {
+                    it.copy(isVerifyLoading = false, verifyErrorMessage = e.message ?: "인증 코드가 일치하지 않습니다.")
+                }
+            }
+        }
+    }
+
+    // 인증 코드 진행 상태 초기화
+    fun resetEmailVerification() {
+        _emailVerificationState.value = EmailVerificationState()
     }
 }

@@ -43,18 +43,6 @@ class AdminRepositoryImpl @Inject constructor(
         return response.result
     }
 
-
-    // 관리자 여부 확인 - 스플래시에서 분기
-    override suspend fun checkIsAdmin(): Boolean {
-        val response: BaseResponse<Boolean> = adminApi.checkIsAdmin()
-
-        if (!response.isSuccess || response.result == null) {
-            throw Exception("관리자 여부 확인 실패: ${response.message}")
-        }
-
-        return response.result
-    }
-
     // 재생성 배치 실패한 동화 보기
     override suspend fun getFailedStories(): List<FailedStory> {
         val response: BaseResponse<List<FailedStory>> = adminApi.getFailedStories()
