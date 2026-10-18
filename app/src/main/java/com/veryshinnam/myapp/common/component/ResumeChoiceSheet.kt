@@ -1,5 +1,6 @@
 package com.veryshinnam.myapp.common.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -109,19 +110,24 @@ private fun SheetChoiceButton(
 ) {
     Button(
         onClick = onClick,
+        // 이어하기(주요): 경고창 시트의 확인 버튼과 같은 연한 주황 + 그림자
+        // 새로 만들기: 배경 없이 흰 테두리 + 흰 글씨 (그림자 없음, 주황 시트 위에서 보조 버튼으로 구분)
         colors = ButtonDefaults.buttonColors(
-            // 이어하기: 연한 주황 / 새로 만들기: 흰색 (주황 시트 위에서 두 버튼이 또렷이 구분되도록)
-            containerColor = if (isPrimary) colorResource(R.color.main_orange_50) else Color.White
+            containerColor = if (isPrimary) colorResource(R.color.main_orange_50) else Color.Transparent
         ),
+        border = if (isPrimary) null else BorderStroke(2.dp, Color.White),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(16.dp), clip = false)
+            .then(
+                if (isPrimary) Modifier.shadow(elevation = 6.dp, shape = RoundedCornerShape(16.dp), clip = false)
+                else Modifier
+            )
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge.copy(
-                color = if (isPrimary) Color.Black else colorResource(R.color.main_orange_shade),
+                color = if (isPrimary) Color.Black else Color.White,
                 fontWeight = FontWeight.Bold
             ),
             modifier = Modifier.padding(4.dp)
