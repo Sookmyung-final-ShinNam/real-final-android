@@ -9,6 +9,8 @@ import com.veryshinnam.myapp.feature.classroom.data.dto.CreateAssignmentRequest
 import com.veryshinnam.myapp.feature.classroom.data.dto.CreateClassroomRequest
 import com.veryshinnam.myapp.feature.classroom.data.dto.CreateClassroomResult
 import com.veryshinnam.myapp.feature.classroom.data.dto.JoinClassroomRequest
+import com.veryshinnam.myapp.feature.classroom.data.dto.ReminderResult
+import com.veryshinnam.myapp.feature.classroom.data.dto.SubmissionResult
 import com.veryshinnam.myapp.feature.creation.data.dto.StartRequest
 import com.veryshinnam.myapp.feature.creation.data.dto.StartResult
 import retrofit2.http.Body
@@ -46,6 +48,20 @@ interface ClassroomApi {
         @Path("classroomId") classroomId: Long,
         @Body request: CreateAssignmentRequest
     ): BaseResponse<Unit>
+
+    // 과제 제출 현황 조회 api (학생별 제출 여부)
+    @GET("api/classrooms/{classroomId}/assignments/{assignmentId}/submissions")
+    suspend fun getSubmissions(
+        @Path("classroomId") classroomId: Long,
+        @Path("assignmentId") assignmentId: Long
+    ): BaseResponse<SubmissionResult>
+
+    // 미제출 학생 알림 메일 발송 api
+    @POST("api/classrooms/{classroomId}/assignments/{assignmentId}/reminders")
+    suspend fun sendReminder(
+        @Path("classroomId") classroomId: Long,
+        @Path("assignmentId") assignmentId: Long
+    ): BaseResponse<ReminderResult>
 
     // --- 학생 ---
     // 학급 가입 신청 api

@@ -54,6 +54,22 @@ data class AssignmentData(
     val isClosed: Boolean           // 마감 시각이 지났는지 (지나면 과제 시작 불가)
 )
 
+// 과제 제출 현황 (선생님)
+data class SubmissionData(
+    val assignmentId: Long,
+    val title: String,
+    val submittedCount: Int,
+    val notSubmittedCount: Int,
+    val students: List<SubmissionStudentData>
+)
+
+data class SubmissionStudentData(
+    val no: Int,
+    val id: Long,
+    val name: String,
+    val isSubmitted: Boolean
+)
+
 // 과제 진행 대상 (과제로 동화 생성 시 생성 플로우로 전달)
 @Parcelize
 data class AssignmentTarget(

@@ -3,6 +3,7 @@ package com.veryshinnam.myapp.feature.classroom.data.repository
 import com.veryshinnam.myapp.feature.classroom.model.AssignmentData
 import com.veryshinnam.myapp.feature.classroom.model.ClassroomDetailData
 import com.veryshinnam.myapp.feature.classroom.model.ClassroomListData
+import com.veryshinnam.myapp.feature.classroom.model.SubmissionData
 import com.veryshinnam.myapp.feature.collection.model.CollectionData
 
 interface ClassroomRepository {
@@ -33,6 +34,12 @@ interface ClassroomRepository {
         dueAt: String,
         commonPrompt: String
     )
+
+    // 과제 제출 현황 조회 (선생님): 학생별 제출 여부
+    suspend fun getSubmissions(classroomId: Long, assignmentId: Long): SubmissionData
+
+    // 미제출 학생에게 알림 메일 발송 (선생님) > 메일을 보내는 학생 수 반환
+    suspend fun sendReminder(classroomId: Long, assignmentId: Long): Int
 
     // 학급 과제 목록 조회
     suspend fun getAssignments(classroomId: Long): List<AssignmentData>

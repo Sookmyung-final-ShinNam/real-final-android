@@ -67,3 +67,24 @@ data class AssignmentResult(
     val notSubmittedCount: Int?,
     val submitted: Boolean?
 )
+
+// 과제 제출 현황 조회 응답 결과 (선생님)
+data class SubmissionResult(
+    val assignmentId: Long,
+    val title: String,
+    val submittedCount: Int,
+    val notSubmittedCount: Int,
+    val students: List<SubmissionStudentResult>
+)
+
+data class SubmissionStudentResult(
+    val studentNo: Int,
+    val studentId: Long,
+    val studentName: String,
+    val submitted: Boolean
+)
+
+// 미제출 학생 알림 메일 발송 응답 결과
+data class ReminderResult(
+    val recipientCount: Int // 알림 메일을 보내는 학생 수
+)

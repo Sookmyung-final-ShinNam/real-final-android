@@ -57,6 +57,7 @@ fun AssignmentCard(
     data: AssignmentData,
     isTeacher: Boolean,
     onStartClick: (Long) -> Unit,
+    onSubmissionClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val lightColor = colorResource(R.color.main_orange_50)
@@ -140,11 +141,13 @@ fun AssignmentCard(
                     .padding(top = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // 누르면 학생별 제출 현황을 볼 수 있음
                 CountBox(
                     label = "제출 완료",
                     count = data.submittedCount ?: 0,
                     color = lightColor,
                     textColor = textColor,
+                    onClick = { onSubmissionClick(data.id) },
                     modifier = Modifier.weight(1f)
                 )
                 CountBox(
@@ -152,6 +155,7 @@ fun AssignmentCard(
                     count = data.notSubmittedCount ?: 0,
                     color = lightColor,
                     textColor = textColor,
+                    onClick = { onSubmissionClick(data.id) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -202,14 +206,19 @@ private fun CountBox(
     count: Int,
     color: Color,
     textColor: Color,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .background(color)
+            .clickable(onClick = onClick)
             .padding(vertical = 10.dp)
-            .semantics(mergeDescendants = true) { contentDescription = "$label ${count}명" },
+            .semantics(mergeDescendants = true) {
+                contentDescription = "$label ${count}명. 학생별 제출 현황 보기"
+                role = Role.Button
+            },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(

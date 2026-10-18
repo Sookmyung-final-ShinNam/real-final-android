@@ -6,6 +6,8 @@ import com.veryshinnam.myapp.feature.classroom.model.ClassroomDetailData
 import com.veryshinnam.myapp.feature.classroom.model.ClassroomListData
 import com.veryshinnam.myapp.feature.classroom.model.JoinStatus
 import com.veryshinnam.myapp.feature.classroom.model.StudentData
+import com.veryshinnam.myapp.feature.classroom.model.SubmissionData
+import com.veryshinnam.myapp.feature.classroom.model.SubmissionStudentData
 import org.threeten.bp.LocalDateTime
 
 // 서버 날짜(2026-10-20 / 2026-10-20T23:59:59) > 화면 표시용(2026.10.20)
@@ -61,6 +63,22 @@ fun StudentResult.toStudentData(): StudentData =
         id = studentId,
         name = studentName,
         isApproved = joinStatus.toJoinStatus() != JoinStatus.PENDING
+    )
+
+fun SubmissionResult.toSubmissionData(): SubmissionData =
+    SubmissionData(
+        assignmentId = assignmentId,
+        title = title,
+        submittedCount = submittedCount,
+        notSubmittedCount = notSubmittedCount,
+        students = students.map {
+            SubmissionStudentData(
+                no = it.studentNo,
+                id = it.studentId,
+                name = it.studentName,
+                isSubmitted = it.submitted
+            )
+        }
     )
 
 fun AssignmentResult.toAssignmentData(): AssignmentData =

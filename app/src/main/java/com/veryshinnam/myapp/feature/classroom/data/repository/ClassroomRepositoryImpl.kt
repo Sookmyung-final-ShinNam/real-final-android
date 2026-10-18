@@ -8,9 +8,11 @@ import com.veryshinnam.myapp.feature.classroom.data.dto.JoinClassroomRequest
 import com.veryshinnam.myapp.feature.classroom.data.dto.toAssignmentData
 import com.veryshinnam.myapp.feature.classroom.data.dto.toClassroomDetailData
 import com.veryshinnam.myapp.feature.classroom.data.dto.toClassroomListData
+import com.veryshinnam.myapp.feature.classroom.data.dto.toSubmissionData
 import com.veryshinnam.myapp.feature.classroom.model.AssignmentData
 import com.veryshinnam.myapp.feature.classroom.model.ClassroomDetailData
 import com.veryshinnam.myapp.feature.classroom.model.ClassroomListData
+import com.veryshinnam.myapp.feature.classroom.model.SubmissionData
 import com.veryshinnam.myapp.feature.collection.model.CollectionData
 import javax.inject.Inject
 
@@ -91,6 +93,26 @@ class ClassroomRepositoryImpl @Inject constructor(
         if (!response.isSuccess) {
             throw Exception("과제 등록 실패: ${response.message}")
         }
+    }
+
+    // 과제 제출 현황 조회
+    override suspend fun getSubmissions(classroomId: Long, assignmentId: Long): SubmissionData {
+        val response = api.getSubmissions(classroomId, assignmentId)
+
+        if (!response.isSuccess || response.result == null) {
+            throw Exception("과제 제출 현황 조회 실패: ${response.message}")
+        }
+        return response.result.toSubmissionData()
+    }
+
+    // 미제출 학생 알림 메일 발송
+    override suspend fun sendReminder(classroomId: Long, assignmentId: Long): Int {
+        val response = api.sendReminder(classroomId, assignmentId)
+
+        if (!response.isSuccess || response.result == null) {
+            throw Exception("미제출 학생 알림 메일 발송 실패: ${response.message}")
+        }
+        return response.result.recipientCount
     }
 
     // 학급 과제 목록 조회

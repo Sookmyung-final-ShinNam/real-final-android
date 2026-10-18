@@ -1,6 +1,7 @@
 package com.veryshinnam.myapp.feature.classroom.ui
 
 import android.content.pm.ActivityInfo
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -27,12 +29,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.veryshinnam.myapp.common.component.InstructionText
 import com.veryshinnam.myapp.common.component.LoadErrorView
 import com.veryshinnam.myapp.common.component.WarningConfirmSheet
+import com.veryshinnam.myapp.common.component.WarningSheet
 import com.veryshinnam.myapp.core.orientation.OrientationManager
 import com.veryshinnam.myapp.feature.classroom.component.AssignmentCard
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomAddCard
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomHeader
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomLoading
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomScaffold
+import com.veryshinnam.myapp.feature.classroom.component.SubmissionSheet
 
 /**
  * 학급 과제 화면
@@ -58,10 +62,17 @@ fun AssignmentListScreen(
     horizontalPadding: Dp = 16.dp,
     vm: AssignmentListViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
     // 상태 구독
     val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val submissionState by vm.submissionState.collectAsStateWithLifecycle()
+    val isSending by vm.isSending.collectAsStateWithLifecycle()
+    val warning by vm.warning.collectAsStateWithLifecycle()
 
     var startAssignmentId by remember { mutableStateOf<Long?>(null) } // 동화 만들기 확인창
+    var submissionNumber by remember { mutableStateOf(0) }            // 제출 현황을 보는 과제 번호
+    var isRemindConfirm by remember { mutableStateOf(false) }         // 알림 메일 발송 확인창
 
     // 세로 모드 고정
     SideEffect {
@@ -72,6 +83,11 @@ fun AssignmentListScreen(
 
     // 화면 진입 시 조회 (동화 생성/과제 등록 후 돌아올 때도 제출 여부 갱신)
     LaunchedEffect(classroomId) { vm.load(classroomId) }
+
+    // 토스트 이벤트
+    LaunchedEffect(Unit) {
+        vm.toast.collect { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+    }
 
     ClassroomScaffold(
         onBack = onBack,
@@ -118,7 +134,11 @@ fun AssignmentListScreen(
                                     number = index + 1,
                                     data = assignment,
                                     isTeacher = isTeacher,
-                                    onStartClick = { startAssignmentId = it }
+                                    onStartClick = { startAssignmentId = it },
+                                    onSubmissionClick = {
+                                        submissionNumber = index + 1
+                                        vm.openSubmissions(it)
+                                    }
                                 )
                             }
 
@@ -136,6 +156,41 @@ fun AssignmentListScreen(
                 }
             }
         }
+    }
+
+    // 제출 현황 (선생님)
+    if (submissionState !is SubmissionUiState.Closed) {
+        SubmissionSheet(
+            number = submissionNumber,
+            state = submissionState,
+            isSending = isSending,
+            onRemindClick = { isRemindConfirm = true },
+            onRetry = {
+                // 현재 보고 있는 과제를 다시 조회
+                (uiState as? AssignmentListUiState.Success)
+                    ?.assignments?.getOrNull(submissionNumber - 1)
+                    ?.let { vm.openSubmissions(it.id) }
+            },
+            onDismiss = { vm.closeSubmissions() }
+        )
+    }
+
+    // 알림 메일 발송 확인 (선생님)
+    if (isRemindConfirm) {
+        WarningConfirmSheet(
+            warningText = "아직 제출하지 않은 학생들에게\n알림 메일을 보낼까요?\n(같은 과제에는 24시간에 한 번만 보낼 수 있어요)",
+            confirmText = "알림 메일 보내기",
+            onDismiss = { isRemindConfirm = false },
+            onConfirm = { vm.sendReminder() }
+        )
+    }
+
+    // 경고창 (서버 오류 문구 등)
+    warning?.let { text ->
+        WarningSheet(
+            warningText = text,
+            onDismiss = { vm.hideWarning() }
+        )
     }
 
     // 동화 만들기 확인 (학생)
