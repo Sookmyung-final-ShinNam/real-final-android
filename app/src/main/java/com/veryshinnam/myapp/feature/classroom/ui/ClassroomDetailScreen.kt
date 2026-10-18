@@ -203,49 +203,26 @@ fun ClassroomDetailScreen(
                         // --- 학생 ---
                         Spacer(Modifier.weight(1f))
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth(0.72f)
-                                .align(Alignment.CenterHorizontally),
-                            verticalArrangement = Arrangement.spacedBy(spacerPadding)
+                        // 버튼 3개를 한 줄(1x3)로 배치
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(spacerPadding)
                         ) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(spacerPadding)) {
-                                ClassroomSquareButton(
-                                    text = "과제 확인",
-                                    onClick = onAssignmentsClick,
-                                    modifier = Modifier.weight(1f).aspectRatio(1f)
-                                )
-
-                                // 다람쥐 이미지 칸
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .aspectRatio(1f)
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(colorResource(R.color.main_orange)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Image(
-                                        painter = painterResource(R.drawable.img_squirrel_cut),
-                                        contentDescription = null, // 장식용
-                                        modifier = Modifier.fillMaxSize().padding(8.dp),
-                                        contentScale = ContentScale.Fit
-                                    )
-                                }
-                            }
-
-                            Row(horizontalArrangement = Arrangement.spacedBy(spacerPadding)) {
-                                ClassroomSquareButton(
-                                    text = "내 동화\n보기",
-                                    onClick = onMyStoriesClick,
-                                    modifier = Modifier.weight(1f).aspectRatio(1f)
-                                )
-                                ClassroomSquareButton(
-                                    text = "동화\n모두 보기",
-                                    onClick = onStoriesClick,
-                                    modifier = Modifier.weight(1f).aspectRatio(1f)
-                                )
-                            }
+                            ClassroomSquareButton(
+                                text = "과제 확인",
+                                onClick = onAssignmentsClick,
+                                modifier = Modifier.weight(1f).aspectRatio(1f)
+                            )
+                            ClassroomSquareButton(
+                                text = "내 동화\n보기",
+                                onClick = onMyStoriesClick,
+                                modifier = Modifier.weight(1f).aspectRatio(1f)
+                            )
+                            ClassroomSquareButton(
+                                text = "동화\n모두 보기",
+                                onClick = onStoriesClick,
+                                modifier = Modifier.weight(1f).aspectRatio(1f)
+                            )
                         }
 
                         // 위아래 같은 여백 > 패널을 남은 공간의 세로 가운데에 배치
