@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.veryshinnam.myapp.common.model.UserRole
 import com.veryshinnam.myapp.core.network.serverMessage
 import com.veryshinnam.myapp.feature.classroom.data.repository.ClassroomRepository
+import com.veryshinnam.myapp.feature.classroom.model.JoinStatus
 import com.veryshinnam.myapp.feature.settings.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,6 +23,9 @@ class ClassroomListViewModel @Inject constructor(
     private val repository: ClassroomRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
+
+    // 승인 대기 상태 조회 중 (중복 조회 방지)
+    private var isPolling = false
 
     // 화면 전체 ui 상태
     private val _uiState = MutableStateFlow<ClassroomListUiState>(ClassroomListUiState.Loading)
@@ -59,6 +64,44 @@ class ClassroomListViewModel @Inject constructor(
                 _uiState.value = ClassroomListUiState.Error(
                     e.serverMessage("학급 목록을 불러오지 못했어요.")
                 )
+            }
+        }
+    }
+
+    // 승인 대기 중인 학급이 있는 학생: 화면을 벗어나지 않아도 승인 결과를 반영하도록 조용히 다시 조회
+    // (화면이 보이는 동안 주기적으로 호출됨. 실패해도 화면을 바꾸지 않고 다음 주기에 다시 시도)
+    fun refreshPending() {
+        val current = _uiState.value as? ClassroomListUiState.Success ?: return
+        val waitingIds = current.classrooms
+            .filter { it.joinStatus == JoinStatus.PENDING }
+            .map { it.id }
+            .toSet()
+
+        if (current.isTeacher || waitingIds.isEmpty() || isPolling) return
+        isPolling = true
+
+        viewModelScope.launch {
+            try {
+                val data = repository.getClassrooms()
+
+                // 대기 중이던 학급 중 승인된 학급
+                val approvedNames = data.classrooms
+                    .filter { it.id in waitingIds && it.joinStatus != JoinStatus.PENDING }
+                    .map { it.name }
+
+                _uiState.update { state ->
+                    if (state is ClassroomListUiState.Success) {
+                        state.copy(nickname = data.nickname, classrooms = data.classrooms)
+                    } else state
+                }
+
+                if (approvedNames.isNotEmpty()) {
+                    _toast.tryEmit("${approvedNames.joinToString(", ")} 학급 가입이 승인됐어요! 이제 들어갈 수 있어요.")
+                }
+            } catch (_: Exception) {
+                // 일시적인 오류는 무시
+            } finally {
+                isPolling = false
             }
         }
     }

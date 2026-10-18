@@ -34,7 +34,11 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 import com.veryshinnam.myapp.common.component.LoadErrorView
 import com.veryshinnam.myapp.common.component.WarningSheet
 import com.veryshinnam.myapp.core.orientation.OrientationManager
@@ -93,6 +97,19 @@ fun ClassroomListScreen(
     // 토스트 이벤트
     LaunchedEffect(Unit) {
         vm.toast.collect { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+    }
+
+    // 승인 대기 중인 학급이 있으면 화면이 보이는 동안 주기적으로 확인
+    // : 선생님이 승인하면 뒤로 갔다 오지 않아도 이 화면에서 바로 들어갈 수 있음
+    //   (대기 중인 학급이 없으면 호출해도 아무 일도 하지 않음)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                delay(5_000)
+                vm.refreshPending()
+            }
+        }
     }
 
     ClassroomScaffold(
