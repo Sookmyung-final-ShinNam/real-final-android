@@ -8,6 +8,7 @@ import com.veryshinnam.myapp.common.model.ManualState
 import com.veryshinnam.myapp.core.manual.ManualManager
 import com.veryshinnam.myapp.core.speech.stt.SttManager
 import com.veryshinnam.myapp.core.speech.tts.TtsManager
+import com.veryshinnam.myapp.feature.classroom.model.AssignmentTarget
 import com.veryshinnam.myapp.feature.creation.data.dto.NextStepResult
 import com.veryshinnam.myapp.feature.creation.data.dto.StartRequest
 import com.veryshinnam.myapp.feature.creation.data.dto.StartResult
@@ -76,13 +77,18 @@ class ConversationViewModel @Inject constructor(
         }
     }
 
-    fun startConversation(req: StartRequest) {
-        Log.d("startConversation: ", "$req")
+    // target이 있으면 학급 과제로 시작
+    fun startConversation(req: StartRequest, target: AssignmentTarget? = null) {
+        Log.d("startConversation: ", "$req, $target")
         _conversationUiState.value = ConversationUiState.Loading
 
         viewModelScope.launch {
             try {
-                val res = repository.startConversation(req) // api 호출
+                val res = if (target != null) {
+                    repository.startAssignment(target.classroomId, target.assignmentId, req) // 과제 api 호출
+                } else {
+                    repository.startConversation(req) // api 호출
+                }
 //                val res = dummyStart() // 더미 테스트
 
                 // 초기화

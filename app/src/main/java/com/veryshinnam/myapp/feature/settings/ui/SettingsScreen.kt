@@ -81,6 +81,7 @@ import org.threeten.bp.LocalDateTime
 fun SettingsScreen(
     onBack: () -> Unit, // 뒤로, 홈으로
     onLogoClick: () -> Unit,
+    onClassroomClick: () -> Unit, // 나의 학급 화면으로 이동
     horizontalPadding: Dp = 16.dp,
     verticalPadding: Dp = 24.dp,
     footerTextStyle: TextStyle =  MaterialTheme.typography.bodySmall,
@@ -265,6 +266,14 @@ fun SettingsScreen(
                                     }
                                 },
                                 text = "메일 보내기",
+                                contentPadding = PaddingValues(vertical = horizontalPadding)
+                            )
+
+                            // 나의 학급 (선생님/학생 분기는 학급 목록 화면에서 처리)
+                            CircleButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = onClassroomClick,
+                                text = "나의 학급",
                                 contentPadding = PaddingValues(vertical = horizontalPadding)
                             )
                         }

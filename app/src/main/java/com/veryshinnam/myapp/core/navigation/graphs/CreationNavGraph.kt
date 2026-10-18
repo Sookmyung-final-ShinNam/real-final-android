@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.veryshinnam.myapp.core.navigation.routes.CreationRoutes
 import com.veryshinnam.myapp.core.navigation.routes.MainRoutes
+import com.veryshinnam.myapp.feature.classroom.model.AssignmentTarget
 import com.veryshinnam.myapp.feature.creation.ui.conversation.ConversationScreen
 import com.veryshinnam.myapp.feature.creation.ui.conversation.ConversationViewModel
 import com.veryshinnam.myapp.feature.creation.data.dto.StartRequest
@@ -36,9 +37,17 @@ fun NavGraphBuilder.creationNavGraph(
                 onFinish = { data ->
                     val req = data.toStartRequest()
 
+                    // 학급 과제에서 진입한 경우, 이전 화면(학급 상세)이 남긴 과제 대상을 함께 전달
+                    val target = navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.get<AssignmentTarget>("assignmentTarget")
+
                     navController.currentBackStackEntry
                         ?.savedStateHandle
-                        ?.set("request", req)
+                        ?.apply {
+                            set("request", req)
+                            set("assignmentTarget", target)
+                        }
 
                     navController.navigate(CreationRoutes.CONVERSATION) {
                         launchSingleTop = true
@@ -62,10 +71,16 @@ fun NavGraphBuilder.creationNavGraph(
                     .get<StartRequest>("request")
             }
 
-            Log.d("conversation", "$req")
+            val target = remember(backStackEntry) {
+                navController.getBackStackEntry(CreationRoutes.SELECTION)
+                    .savedStateHandle
+                    .get<AssignmentTarget>("assignmentTarget")
+            }
+
+            Log.d("conversation", "$req, $target")
             LaunchedEffect(req) {
                 if (req != null) {
-                    vm.startConversation(req) // api 호출, 동화 세선 시작
+                    vm.startConversation(req, target) // api 호출, 동화 세선 시작 (target이 있으면 과제)
                 }
                 else {
                     vm.startManual()            // 매뉴얼 모드 시작

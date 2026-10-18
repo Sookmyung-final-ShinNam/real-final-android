@@ -1,6 +1,8 @@
 package com.veryshinnam.myapp.feature.creation.data.repository
 
 import com.veryshinnam.myapp.core.network.BaseResponse
+import com.veryshinnam.myapp.core.network.serverMessage
+import com.veryshinnam.myapp.feature.classroom.data.api.ClassroomApi
 import com.veryshinnam.myapp.feature.creation.data.api.ConversationApi
 import com.veryshinnam.myapp.feature.creation.data.dto.FeedbackResult
 import com.veryshinnam.myapp.feature.creation.data.dto.NextStepResult
@@ -11,8 +13,29 @@ import com.veryshinnam.myapp.feature.creation.model.FeedbackData
 import javax.inject.Inject
 
 class ConversationRepositoryImpl @Inject constructor(
-    private val api: ConversationApi
+    private val api: ConversationApi,
+    private val classroomApi: ClassroomApi
 ) : ConversationRepository {
+
+    // 과제 진행 (과제용 대화 세션 시작)
+    // : 학급 도토리 부족, 미승인 학생 등 서버 에러 메시지를 그대로 전달
+    override suspend fun startAssignment(
+        classroomId: Long,
+        assignmentId: Long,
+        request: StartRequest
+    ): StartResult {
+        val response: BaseResponse<StartResult> = try {
+            classroomApi.startAssignment(classroomId, assignmentId, request)
+        } catch (e: Exception) {
+            throw Exception(e.serverMessage("과제를 시작하지 못했어요."))
+        }
+
+        if (!response.isSuccess || response.result == null) {
+            throw Exception("과제 진행 실패: ${response.message}")
+        }
+
+        return response.result
+    }
 
     // 대화 세션 시작
     override suspend fun startConversation(request: StartRequest): StartResult {

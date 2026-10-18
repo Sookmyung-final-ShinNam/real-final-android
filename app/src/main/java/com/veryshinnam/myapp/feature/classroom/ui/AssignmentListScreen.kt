@@ -1,0 +1,150 @@
+package com.veryshinnam.myapp.feature.classroom.ui
+
+import android.content.pm.ActivityInfo
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.veryshinnam.myapp.common.component.InstructionText
+import com.veryshinnam.myapp.common.component.LoadErrorView
+import com.veryshinnam.myapp.common.component.WarningConfirmSheet
+import com.veryshinnam.myapp.core.orientation.OrientationManager
+import com.veryshinnam.myapp.feature.classroom.component.AssignmentCard
+import com.veryshinnam.myapp.feature.classroom.component.ClassroomAddCard
+import com.veryshinnam.myapp.feature.classroom.component.ClassroomHeader
+import com.veryshinnam.myapp.feature.classroom.component.ClassroomLoading
+import com.veryshinnam.myapp.feature.classroom.component.ClassroomScaffold
+
+/**
+ * 학급 과제 화면
+ *   - 선생님: 과제 카드(제출 완료/미제출 인원) + 새로운 과제 만들기
+ *   - 학생: 과제 카드 + 동화 만들기 (제출했으면 진행 완료)
+ *
+ * - classroomId: 학급 아이디
+ * - isTeacher: 선생님 여부
+ * - onBack: 뒤로 가기 버튼 클릭 시
+ * - onLogoClick: 로고 클릭 시, 홈 화면으로 복구
+ * - onCreateAssignment: 새로운 과제 만들기 클릭 시, 과제 만들기 화면으로 이동
+ * - onStartAssignment: 동화 만들기 확인 시, 동화 생성 플로우로 이동 (과제 아이디 전달)
+ */
+@Composable
+fun AssignmentListScreen(
+    classroomId: Long,
+    isTeacher: Boolean,
+    onBack: () -> Unit,
+    onLogoClick: () -> Unit,
+    onCreateAssignment: () -> Unit,
+    onStartAssignment: (assignmentId: Long) -> Unit,
+    spacerPadding: Dp = 10.dp,
+    horizontalPadding: Dp = 16.dp,
+    vm: AssignmentListViewModel = hiltViewModel()
+) {
+    // 상태 구독
+    val uiState by vm.uiState.collectAsStateWithLifecycle()
+
+    var startAssignmentId by remember { mutableStateOf<Long?>(null) } // 동화 만들기 확인창
+
+    // 세로 모드 고정
+    SideEffect {
+        OrientationManager.setOrientation?.invoke(
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        )
+    }
+
+    // 화면 진입 시 조회 (동화 생성/과제 등록 후 돌아올 때도 제출 여부 갱신)
+    LaunchedEffect(classroomId) { vm.load(classroomId) }
+
+    ClassroomScaffold(
+        onBack = onBack,
+        onLogoClick = onLogoClick
+    ) {
+        when (val state = uiState) {
+            // 조회 로딩
+            is AssignmentListUiState.Loading -> ClassroomLoading()
+
+            // 조회 오류
+            is AssignmentListUiState.Error -> {
+                LoadErrorView(
+                    message = state.message,
+                    onRetry = { vm.retry() }
+                )
+            }
+
+            // 조회 성공
+            is AssignmentListUiState.Success -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = horizontalPadding)
+                ) {
+                    ClassroomHeader(message = "${state.classroomName}\n과제 페이지입니다.")
+
+                    Spacer(Modifier.height(spacerPadding * 1.5f))
+
+                    if (state.assignments.isEmpty() && !isTeacher) {
+                        // 학생: 아직 과제 없음
+                        Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) {
+                            InstructionText(
+                                text = "아직 선생님이 내 준 과제가 없어요!",
+                                textStyle = MaterialTheme.typography.titleSmall
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(spacerPadding * 1.5f)
+                        ) {
+                            itemsIndexed(state.assignments, key = { _, item -> item.id }) { index, assignment ->
+                                AssignmentCard(
+                                    number = index + 1,
+                                    data = assignment,
+                                    isTeacher = isTeacher,
+                                    onStartClick = { startAssignmentId = it }
+                                )
+                            }
+
+                            // 선생님: 새로운 과제 만들기
+                            if (isTeacher) {
+                                item {
+                                    ClassroomAddCard(
+                                        title = "새로운 과제 만들기",
+                                        onClick = onCreateAssignment
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 동화 만들기 확인 (학생)
+    startAssignmentId?.let { assignmentId ->
+        WarningConfirmSheet(
+            warningText = "과제 동화를 만들면 학급 도토리가 1개 사용돼요.\n지금 동화를 만들러 갈까요?",
+            confirmText = "동화 만들기",
+            onDismiss = { startAssignmentId = null },
+            onConfirm = { onStartAssignment(assignmentId) }
+        )
+    }
+}

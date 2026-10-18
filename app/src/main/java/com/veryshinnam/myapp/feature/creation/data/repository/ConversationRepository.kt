@@ -8,6 +8,7 @@ import com.veryshinnam.myapp.feature.creation.model.FeedbackData
 
 interface ConversationRepository {
     suspend fun startConversation(request: StartRequest): StartResult
+    suspend fun startAssignment(classroomId: Long, assignmentId: Long, request: StartRequest): StartResult
     suspend fun getNextStep(sessionId: Long, currentStep: String): NextStepResult
     suspend fun feedbackConversation(messageId: Long, userAnswer: String): FeedbackData
     suspend fun completeConversation(sessionId: Long): Boolean
