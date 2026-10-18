@@ -206,8 +206,7 @@ fun ClassroomDetailScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth(0.72f)
-                                .align(Alignment.CenterHorizontally)
-                                .padding(bottom = spacerPadding * 1.5f),
+                                .align(Alignment.CenterHorizontally),
                             verticalArrangement = Arrangement.spacedBy(spacerPadding)
                         ) {
                             Row(horizontalArrangement = Arrangement.spacedBy(spacerPadding)) {
@@ -248,6 +247,9 @@ fun ClassroomDetailScreen(
                                 )
                             }
                         }
+
+                        // 위아래 같은 여백 > 패널을 남은 공간의 세로 가운데에 배치
+                        Spacer(Modifier.weight(1f))
                     }
                 }
             }
