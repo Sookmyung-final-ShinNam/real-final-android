@@ -99,6 +99,7 @@ fun AssignmentResult.toAssignmentData(): AssignmentData {
         description = description,
         dDay = days,
         dueDate = dueAt.toDisplayDateTime(),
+        dueAt = dueAt,
         submittedCount = submittedCount,
         notSubmittedCount = notSubmittedCount,
         isSubmitted = submitted,

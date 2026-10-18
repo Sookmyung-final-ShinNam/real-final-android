@@ -56,9 +56,19 @@ class ClassroomDetailViewModel @Inject constructor(
 
     private suspend fun refresh(initial: Boolean = false) {
         try {
+            val detail = repository.getClassroomDetail(classroomId)
+
+            // 학생: 임박한 과제와 제출 현황을 보여주기 위해 과제 목록도 조회 (실패해도 학급 화면은 보여줌)
+            val assignments = if (isTeacher) emptyList() else try {
+                repository.getAssignments(classroomId)
+            } catch (e: Exception) {
+                emptyList()
+            }
+
             _uiState.value = ClassroomDetailUiState.Success(
                 isTeacher = isTeacher,
-                detail = repository.getClassroomDetail(classroomId)
+                detail = detail,
+                assignments = assignments
             )
         } catch (e: Exception) {
             val message = e.serverMessage("학급 정보를 불러오지 못했어요.")

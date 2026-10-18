@@ -48,6 +48,7 @@ data class AssignmentData(
     val description: String?,       // 학생 조회에서만 존재
     val dDay: Long,                 // 0: 오늘 마감, 음수: 마감 지남
     val dueDate: String,            // 마감 일시 (yyyy.MM.dd 오후 h:mm)
+    val dueAt: String,              // 마감 일시 원본 (2026-10-20T23:59:00, 문자열 비교로 마감 순서 정렬 가능)
     val submittedCount: Int?,       // 선생님 조회에서만 존재
     val notSubmittedCount: Int?,    // 선생님 조회에서만 존재
     val isSubmitted: Boolean?,      // 학생 조회에서만 존재

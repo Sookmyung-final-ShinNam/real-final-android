@@ -170,7 +170,6 @@ fun NavGraphBuilder.mainNavGraph(
                 onLogoClick = { navController.navigateToHome() },
                 onAssignmentsClick = { navController.navigate("classroom_assignments/$classroomId/$isTeacher") },
                 onStoriesClick = { navController.navigate("classroom_stories/$classroomId") },
-                onMyStoriesClick = { navController.navigate(MainRoutes.COLLECTION) } // 내 동화 = 기존 보관함
             )
         }
 

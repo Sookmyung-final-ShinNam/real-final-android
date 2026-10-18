@@ -36,7 +36,7 @@ import com.veryshinnam.myapp.R
 import com.veryshinnam.myapp.feature.classroom.model.AssignmentData
 
 // 마감까지 남은 일수 표시
-private fun AssignmentData.dDayText(): String = when {
+internal fun AssignmentData.dDayText(): String = when {
     isClosed -> "마감"
     dDay > 0 -> "${dDay}일 남음"
     else -> "오늘 마감"

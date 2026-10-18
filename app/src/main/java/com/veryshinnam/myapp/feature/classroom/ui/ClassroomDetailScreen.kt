@@ -45,6 +45,7 @@ import com.veryshinnam.myapp.feature.classroom.component.ClassroomHeader
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomLoading
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomScaffold
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomSquareButton
+import com.veryshinnam.myapp.feature.classroom.component.ImminentAssignmentCard
 import com.veryshinnam.myapp.feature.classroom.component.StudentRow
 
 /**
@@ -58,7 +59,6 @@ import com.veryshinnam.myapp.feature.classroom.component.StudentRow
  * - onLogoClick: 로고 클릭 시, 홈 화면으로 복구
  * - onAssignmentsClick: 과제 관리(선생님) / 과제 확인(학생) 클릭 시, 과제 목록 화면으로 이동
  * - onStoriesClick: 동화 모두 보기 클릭 시, 학급 동화 화면으로 이동
- * - onMyStoriesClick: (학생) 내 동화 보기 클릭 시, 보관함 화면으로 이동
  */
 @Composable
 fun ClassroomDetailScreen(
@@ -68,7 +68,6 @@ fun ClassroomDetailScreen(
     onLogoClick: () -> Unit,
     onAssignmentsClick: () -> Unit,
     onStoriesClick: () -> Unit,
-    onMyStoriesClick: () -> Unit,
     spacerPadding: Dp = 10.dp,
     horizontalPadding: Dp = 16.dp,
     vm: ClassroomDetailViewModel = hiltViewModel()
@@ -203,26 +202,25 @@ fun ClassroomDetailScreen(
                         // --- 학생 ---
                         Spacer(Modifier.weight(1f))
 
-                        // 버튼 3개를 한 줄(1x3)로 배치
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(spacerPadding)
-                        ) {
-                            ClassroomSquareButton(
-                                text = "과제 확인",
-                                onClick = onAssignmentsClick,
-                                modifier = Modifier.weight(1f).aspectRatio(1f)
+                        // 임박한 과제 + 내 제출 현황, 과제/동화 이동 버튼
+                        Column(verticalArrangement = Arrangement.spacedBy(spacerPadding * 1.5f)) {
+                            ImminentAssignmentCard(
+                                assignments = state.assignments,
+                                onClick = onAssignmentsClick
                             )
-                            ClassroomSquareButton(
-                                text = "내 동화\n보기",
-                                onClick = onMyStoriesClick,
-                                modifier = Modifier.weight(1f).aspectRatio(1f)
-                            )
-                            ClassroomSquareButton(
-                                text = "동화\n모두 보기",
-                                onClick = onStoriesClick,
-                                modifier = Modifier.weight(1f).aspectRatio(1f)
-                            )
+
+                            Row(horizontalArrangement = Arrangement.spacedBy(spacerPadding)) {
+                                ClassroomSquareButton(
+                                    text = "과제 확인",
+                                    onClick = onAssignmentsClick,
+                                    modifier = Modifier.weight(1f).height(96.dp)
+                                )
+                                ClassroomSquareButton(
+                                    text = "동화\n모두 보기",
+                                    onClick = onStoriesClick,
+                                    modifier = Modifier.weight(1f).height(96.dp)
+                                )
+                            }
                         }
 
                         // 위아래 같은 여백 > 패널을 남은 공간의 세로 가운데에 배치
