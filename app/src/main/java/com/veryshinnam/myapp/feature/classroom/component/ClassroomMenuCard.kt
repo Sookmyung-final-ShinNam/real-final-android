@@ -1,5 +1,6 @@
 package com.veryshinnam.myapp.feature.classroom.component
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -162,4 +164,26 @@ fun ClassroomSquareButton(
             )
         )
     }
+}
+
+/**
+ * 보관함 아이콘 버튼
+ * : 홈 화면 하단의 보관함 버튼과 같은 이미지 (학급 동화를 모아 보는 학급 보관함으로 이동)
+ */
+@Composable
+fun ClassroomCollectionButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Image(
+        painter = painterResource(R.drawable.img_bottom_collection),
+        contentDescription = null, // 대체 텍스트는 아래 semantics에서 설정
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .semantics {
+                contentDescription = "학급 보관함"
+                role = Role.Button
+            }
+    )
 }

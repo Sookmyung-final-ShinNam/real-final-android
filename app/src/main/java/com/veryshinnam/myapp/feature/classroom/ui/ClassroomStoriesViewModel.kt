@@ -3,6 +3,7 @@ package com.veryshinnam.myapp.feature.classroom.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.veryshinnam.myapp.core.network.serverMessage
+import com.veryshinnam.myapp.feature.character.data.repository.CharacterRepository
 import com.veryshinnam.myapp.feature.classroom.data.repository.ClassroomRepository
 import com.veryshinnam.myapp.feature.classroom.model.AssignmentData
 import com.veryshinnam.myapp.feature.collection.model.CollectionData
@@ -27,7 +28,8 @@ sealed interface ClassroomStoriesUiState {
 
 @HiltViewModel
 class ClassroomStoriesViewModel @Inject constructor(
-    private val repository: ClassroomRepository
+    private val repository: ClassroomRepository,
+    private val characterRepository: CharacterRepository
 ) : ViewModel() {
 
     private var classroomId: Long = -1L
@@ -68,6 +70,42 @@ class ClassroomStoriesViewModel @Inject constructor(
 
     // 다시 시도 (오류 화면)
     fun retry() = load(classroomId)
+
+    // 관심 캐릭터 등록/해제 (내가 만든 캐릭터, 친구가 만든 캐릭터 모두 가능)
+    // 일반 보관함/홈의 관심 캐릭터와 같은 목록이며 5개 한도를 함께 씀
+    fun updateFavorite(id: Long, onError: (String) -> Unit = {}) {
+        val state = _uiState.value as? ClassroomStoriesUiState.Success ?: return
+        val target = state.stories?.find { it.id == id } ?: return
+        val newFavorite = !target.isFavorite
+
+        // ui 먼저 반영
+        setFavorite(id, newFavorite)
+
+        // 서버 반영
+        viewModelScope.launch {
+            try {
+                if (newFavorite) characterRepository.addFavorite(id)
+                else characterRepository.removeFavorite(id)
+            } catch (_: Exception) {
+                // 실패 시 원복
+                setFavorite(id, !newFavorite)
+                onError("좋아하는 캐릭터는 5명까지 등록할 수 있어요!\n(홈의 즐겨찾기와 합쳐서 5명이에요)")
+            }
+        }
+    }
+
+    // 목록에서 해당 캐릭터의 관심 여부만 바꿈
+    private fun setFavorite(id: Long, isFavorite: Boolean) {
+        _uiState.update { current ->
+            if (current is ClassroomStoriesUiState.Success) {
+                current.copy(
+                    stories = current.stories?.map {
+                        if (it.id == id) it.copy(isFavorite = isFavorite) else it
+                    }
+                )
+            } else current
+        }
+    }
 
     // 과제 필터 선택 (null: 전체)
     fun selectAssignment(assignmentId: Long?) {

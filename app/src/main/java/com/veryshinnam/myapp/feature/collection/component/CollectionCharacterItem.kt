@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,6 +30,7 @@ import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import androidx.compose.ui.text.style.TextOverflow
 import com.veryshinnam.myapp.R
 import com.veryshinnam.myapp.common.component.FavoriteButton
 import com.veryshinnam.myapp.common.component.StrokeTitle
@@ -42,6 +44,7 @@ fun CollectionCharacterItem(
     isFavorite: Boolean, // 캐릭터 즐찾 여부
     onItemClick: (Long) -> Unit,
     onFavoriteClick: (cId: Long) -> Unit,   // 클릭 시 외부 처리
+    creatorName: String? = null, // 만든 사용자 닉네임 (학급 동화에서만 표시)
     textStyle: TextStyle = MaterialTheme.typography.titleLarge,
     modifier: Modifier   // 부모가 넘겨준 크기
 ) {
@@ -106,17 +109,33 @@ fun CollectionCharacterItem(
             onFavoriteClick = onFavoriteClick,
         )
 
-        // 캐릭터 이름
-        StrokeTitle(
-            titleText = cName,
-            titleColor = Color.White,
-            strokeColor = Color.Black,
-            titleTextStyle = textStyle,
-            strokeWidth = 4f,
+        // 캐릭터 이름 (+ 학급 동화는 만든 사용자 닉네임)
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 4.dp) // 아래 패딩
-                .clearAndSetSemantics { }
-        )
+                .clearAndSetSemantics { },
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            StrokeTitle(
+                titleText = cName,
+                titleColor = Color.White,
+                strokeColor = Color.Black,
+                titleTextStyle = textStyle,
+                strokeWidth = 4f
+            )
+
+            if (!creatorName.isNullOrBlank()) {
+                StrokeTitle(
+                    titleText = creatorName,
+                    titleColor = Color.White,
+                    strokeColor = Color.Black,
+                    titleTextStyle = MaterialTheme.typography.bodySmall,
+                    strokeWidth = 3f,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
     }
 }

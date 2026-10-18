@@ -12,6 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -26,6 +29,7 @@ import com.veryshinnam.myapp.R
 import com.veryshinnam.myapp.common.component.InstructionText
 import com.veryshinnam.myapp.common.component.LoadErrorView
 import com.veryshinnam.myapp.common.component.UserInfo
+import com.veryshinnam.myapp.common.component.WarningSheet
 import com.veryshinnam.myapp.core.orientation.OrientationManager
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomFilterChips
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomLoading
@@ -56,6 +60,8 @@ fun ClassroomStoriesScreen(
 ) {
     // 상태 구독
     val uiState by vm.uiState.collectAsStateWithLifecycle()
+
+    var warningText by remember { mutableStateOf<String?>(null) } // 관심 캐릭터 한도 등 경고창
 
     // 세로 모드 고정
     SideEffect {
@@ -109,7 +115,7 @@ fun ClassroomStoriesScreen(
                         cardText = if (topic != null) {
                             "선택한 과제의 주제는 '$topic'입니다.\n다른 친구들의 작품도 확인해 보세요!"
                         } else {
-                            "우리 반 친구들이 만든 동화예요.\n과제를 골라 모아서 볼 수도 있어요!"
+                            "우리 반 친구들이 만든 동화예요.\n좋아하는 캐릭터는 별 모양으로 5명까지 표시할 수 있어요!"
                         },
                         spanText = topic ?: "우리 반 친구들",
                         spanColor = colorResource(R.color.blue_sky)
@@ -145,7 +151,9 @@ fun ClassroomStoriesScreen(
                         else -> {
                             CollectionCharacterGrid(
                                 data = stories,
-                                onFavoriteClick = { }, // 학급 동화는 관심 캐릭터 등록 불가
+                                onFavoriteClick = { id ->
+                                    vm.updateFavorite(id) { text -> warningText = text }
+                                },
                                 onItemClick = onItemClick,
                                 cellPadding = spacerPadding / 2,
                                 modifier = Modifier.weight(1f).fillMaxSize(),
@@ -156,5 +164,13 @@ fun ClassroomStoriesScreen(
                 }
             }
         }
+    }
+
+    // 경고창 (관심 캐릭터 한도 등)
+    warningText?.let { text ->
+        WarningSheet(
+            warningText = text,
+            onDismiss = { warningText = null }
+        )
     }
 }

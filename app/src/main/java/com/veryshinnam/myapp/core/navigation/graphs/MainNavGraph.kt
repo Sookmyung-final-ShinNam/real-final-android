@@ -170,6 +170,7 @@ fun NavGraphBuilder.mainNavGraph(
                 onLogoClick = { navController.navigateToHome() },
                 onAssignmentsClick = { navController.navigate("classroom_assignments/$classroomId/$isTeacher") },
                 onStoriesClick = { navController.navigate("classroom_stories/$classroomId") },
+                onFavoriteClick = { id -> navController.navigate("classroom_character/$id") },
             )
         }
 

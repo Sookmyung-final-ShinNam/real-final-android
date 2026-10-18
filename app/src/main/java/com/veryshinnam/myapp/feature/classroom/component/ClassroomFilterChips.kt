@@ -106,3 +106,35 @@ private fun FilterChip(
         )
     }
 }
+
+// 과제 상태 필터
+enum class AssignmentFilter(val label: String) {
+    ALL("전체"),
+    ONGOING("진행중"),  // 마감 전
+    CLOSED("마감")      // 마감 지남
+}
+
+/**
+ * 과제 상태 필터 (전체 / 진행중 / 마감)
+ * : 보관함 성별 필터 버튼과 같은 파란 알약 모양
+ */
+@Composable
+fun AssignmentFilterChips(
+    selected: AssignmentFilter,
+    onSelect: (AssignmentFilter) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.foundation.layout.Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        AssignmentFilter.entries.forEach { filter ->
+            FilterChip(
+                text = filter.label,
+                description = "${filter.label} 과제",
+                isSelected = filter == selected,
+                onClick = { onSelect(filter) }
+            )
+        }
+    }
+}

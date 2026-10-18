@@ -16,7 +16,8 @@ fun CharacterDetailResult.toCharacterData(): CharacterData =
         personality = personality,
         birth = createTime.substring(0, 10),
         isFavorite = important,
-        stories = this.toStoriesData()
+        stories = this.toStoriesData(),
+        creatorName = creatorNickname
     )
 
 fun CharacterDetailResult.toStoriesData(): StoriesData =

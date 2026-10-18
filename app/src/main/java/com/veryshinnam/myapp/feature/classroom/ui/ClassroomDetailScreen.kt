@@ -23,6 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,7 +48,11 @@ import com.veryshinnam.myapp.feature.classroom.component.ClassroomHeader
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomLoading
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomScaffold
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomSquareButton
-import com.veryshinnam.myapp.feature.classroom.component.ImminentAssignmentCard
+import com.veryshinnam.myapp.feature.classroom.component.ClassroomCollectionButton
+import com.veryshinnam.myapp.feature.classroom.component.ImminentAssignmentNotice
+import com.veryshinnam.myapp.feature.home.component.HomeFavoriteCarousel
+import com.veryshinnam.myapp.feature.home.model.FavoriteData
+import com.veryshinnam.myapp.common.model.ImageType
 import com.veryshinnam.myapp.feature.classroom.component.StudentRow
 
 /**
@@ -58,7 +65,8 @@ import com.veryshinnam.myapp.feature.classroom.component.StudentRow
  * - onBack: 뒤로 가기 버튼 클릭 시
  * - onLogoClick: 로고 클릭 시, 홈 화면으로 복구
  * - onAssignmentsClick: 과제 관리(선생님) / 과제 확인(학생) 클릭 시, 과제 목록 화면으로 이동
- * - onStoriesClick: 동화 모두 보기 클릭 시, 학급 동화 화면으로 이동
+ * - onStoriesClick: 보관함 클릭 시, 학급 동화(보관함) 화면으로 이동
+ * - onFavoriteClick: (학생) 즐겨찾기 캐릭터 카드 클릭 시, 학급 캐릭터 화면으로 이동
  */
 @Composable
 fun ClassroomDetailScreen(
@@ -68,6 +76,7 @@ fun ClassroomDetailScreen(
     onLogoClick: () -> Unit,
     onAssignmentsClick: () -> Unit,
     onStoriesClick: () -> Unit,
+    onFavoriteClick: (Long) -> Unit,
     spacerPadding: Dp = 10.dp,
     horizontalPadding: Dp = 16.dp,
     vm: ClassroomDetailViewModel = hiltViewModel()
@@ -77,6 +86,8 @@ fun ClassroomDetailScreen(
     // 상태 구독
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val warning by vm.warning.collectAsStateWithLifecycle()
+
+    var lastSelectedFavorite by rememberSaveable { mutableStateOf<Long?>(null) } // 즐겨찾기 카드 마지막 선택
 
     // 세로 모드 고정
     SideEffect {
@@ -182,8 +193,8 @@ fun ClassroomDetailScreen(
                                 .padding(bottom = spacerPadding * 1.5f),
                             horizontalArrangement = Arrangement.spacedBy(spacerPadding)
                         ) {
-                            ClassroomSquareButton(
-                                text = "동화\n모두 보기",
+                            // 보관함 (홈 화면의 보관함 아이콘)
+                            ClassroomCollectionButton(
                                 onClick = onStoriesClick,
                                 modifier = Modifier.weight(1f).aspectRatio(1f)
                             )
@@ -200,31 +211,47 @@ fun ClassroomDetailScreen(
                         }
                     } else {
                         // --- 학생 ---
-                        Spacer(Modifier.weight(1f))
+                        Spacer(Modifier.height(spacerPadding))
 
-                        // 임박한 과제 + 내 제출 현황, 과제/동화 이동 버튼
-                        Column(verticalArrangement = Arrangement.spacedBy(spacerPadding * 1.5f)) {
-                            ImminentAssignmentCard(
-                                assignments = state.assignments,
-                                onClick = onAssignmentsClick
+                        // 임박한 과제 (글씨로만 표시) + 과제 전체 보기 링크
+                        ImminentAssignmentNotice(
+                            assignments = state.assignments,
+                            onShowAllClick = onAssignmentsClick
+                        )
+
+                        // 즐겨찾기한 캐릭터 카드 (홈과 같은 카드, 내가 만든 것 + 친구가 만든 것, 홈과 합쳐 5개 한도)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .padding(vertical = spacerPadding)
+                        ) {
+                            HomeFavoriteCarousel(
+                                modifier = Modifier.fillMaxSize(),
+                                characters = state.favorites.map {
+                                    FavoriteData(
+                                        id = it.id,
+                                        name = it.name,
+                                        image = (it.image as? ImageType.Url)?.url ?: ""
+                                    )
+                                },
+                                lastSelectedId = lastSelectedFavorite,
+                                onCharacterClick = { id ->
+                                    lastSelectedFavorite = id
+                                    onFavoriteClick(id)
+                                },
+                                onCharacterChanged = { id -> lastSelectedFavorite = id }
                             )
-
-                            Row(horizontalArrangement = Arrangement.spacedBy(spacerPadding)) {
-                                ClassroomSquareButton(
-                                    text = "과제 확인",
-                                    onClick = onAssignmentsClick,
-                                    modifier = Modifier.weight(1f).height(96.dp)
-                                )
-                                ClassroomSquareButton(
-                                    text = "동화\n모두 보기",
-                                    onClick = onStoriesClick,
-                                    modifier = Modifier.weight(1f).height(96.dp)
-                                )
-                            }
                         }
 
-                        // 위아래 같은 여백 > 패널을 남은 공간의 세로 가운데에 배치
-                        Spacer(Modifier.weight(1f))
+                        // 보관함 (홈 화면의 보관함 아이콘)
+                        ClassroomCollectionButton(
+                            onClick = onStoriesClick,
+                            modifier = Modifier
+                                .fillMaxWidth(0.4f)
+                                .align(Alignment.CenterHorizontally)
+                                .padding(bottom = spacerPadding)
+                        )
                     }
                 }
             }

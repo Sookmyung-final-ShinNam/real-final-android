@@ -13,6 +13,7 @@ fun CharacterResult.toCollectionData(): CollectionData? {
         name = name,
         image = ImageType.Url(imageUrl),
         gender = Gender.valueOf(gender),
-        isFavorite = important
+        isFavorite = important,
+        creatorName = creatorNickname
     )
 }

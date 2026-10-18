@@ -82,6 +82,7 @@ fun ClassroomCharacterScreen(
     val uiState by vm.uiState.collectAsStateWithLifecycle()
 
     var isLinkNotExisting by remember { mutableStateOf(false) } // 유튜브 링크 준비 안 됨 경고
+    var favoriteWarning by remember { mutableStateOf<String?>(null) } // 관심 캐릭터 한도 등 경고
 
     // 가로 모드 고정
     SideEffect {
@@ -151,7 +152,10 @@ fun ClassroomCharacterScreen(
                     // 왼쪽 캐릭터 이미지 카드
                     CharacterCardLeft(
                         character = character,
-                        onFavoriteClick = { }, // 학급 동화는 관심 캐릭터 등록 불가
+                        onFavoriteClick = { id ->
+                            // 내가 만든 캐릭터, 친구가 만든 캐릭터 모두 관심 등록 가능 (5개 한도)
+                            vm.updateFavorite(id) { text -> favoriteWarning = text }
+                        },
                         modifier = Modifier
                             .aspectRatio(0.8f) // 카드 비율
                             .offset(x = xMoving)
@@ -221,6 +225,20 @@ fun ClassroomCharacterScreen(
                                         .fillMaxWidth()
                                         .clearAndSetSemantics { }
                                 )
+
+                                // 만든 사용자 닉네임
+                                if (!character.creatorName.isNullOrBlank()) {
+                                    Text(
+                                        text = "made by ${character.creatorName}",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = colorResource(R.color.main_orange_shade),
+                                            textAlign = TextAlign.End
+                                        ),
+                                        maxLines = 1,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
                         }
                     }
@@ -235,6 +253,14 @@ fun ClassroomCharacterScreen(
             warningText = "아직 유튜브 링크가 준비되지 않았어요.\n조금만 기다려 주세요!",
             wtStyle = MaterialTheme.typography.bodySmall,
             onDismiss = { isLinkNotExisting = false }
+        )
+    }
+
+    // 관심 캐릭터 한도 등 경고
+    favoriteWarning?.let { text ->
+        WarningSheet(
+            warningText = text,
+            onDismiss = { favoriteWarning = null }
         )
     }
 }

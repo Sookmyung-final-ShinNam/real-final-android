@@ -12,5 +12,6 @@ data class CharacterData(
     val personality: String, // 캐릭터 성격
     val birth: String,       // 캐릭터 생성일
     val isFavorite: Boolean, // 캐릭터 즐찾 여부
-    val stories: StoriesData // 캐릭터 동화(이미지-영상) 정보
+    val stories: StoriesData, // 캐릭터 동화(이미지-영상) 정보
+    val creatorName: String? = null // 만든 사용자 닉네임 (학급 동화에서만 표시)
 )

@@ -65,6 +65,7 @@ fun CollectionCharacterGrid(
                         cName = item.name,
                         cImage = item.image,
                         isFavorite = item.isFavorite,
+                        creatorName = item.creatorName,
                         onFavoriteClick = onFavoriteClick,
                         onItemClick = onItemClick,
                         modifier = Modifier

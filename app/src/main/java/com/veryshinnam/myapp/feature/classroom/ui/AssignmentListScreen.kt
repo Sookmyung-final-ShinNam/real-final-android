@@ -10,13 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,6 +34,8 @@ import com.veryshinnam.myapp.common.component.WarningConfirmSheet
 import com.veryshinnam.myapp.common.component.WarningSheet
 import com.veryshinnam.myapp.core.orientation.OrientationManager
 import com.veryshinnam.myapp.feature.classroom.component.AssignmentCard
+import com.veryshinnam.myapp.feature.classroom.component.AssignmentFilter
+import com.veryshinnam.myapp.feature.classroom.component.AssignmentFilterChips
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomAddCard
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomHeader
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomLoading
@@ -73,6 +77,7 @@ fun AssignmentListScreen(
     val warning by vm.warning.collectAsStateWithLifecycle()
 
     var startAssignmentId by remember { mutableStateOf<Long?>(null) } // 동화 만들기 확인창
+    var filter by rememberSaveable { mutableStateOf(AssignmentFilter.ALL) } // 과제 상태 필터
     var submissionNumber by remember { mutableStateOf(0) }            // 제출 현황을 보는 과제 번호
     var isRemindConfirm by remember { mutableStateOf(false) }         // 알림 메일 발송 확인창
 
@@ -127,18 +132,53 @@ fun AssignmentListScreen(
                             )
                         }
                     } else {
+                        // 과제 상태 필터 (전체 / 진행중 / 마감) - 보관함 화면의 필터와 같은 모양
+                        if (state.assignments.isNotEmpty()) {
+                            AssignmentFilterChips(
+                                selected = filter,
+                                onSelect = { filter = it }
+                            )
+                            Spacer(Modifier.height(spacerPadding))
+                        }
+
+                        // 과제 번호("과제 N")는 필터와 상관없이 전체 목록 기준 순서를 유지
+                        val filtered = state.assignments
+                            .mapIndexed { index, assignment -> (index + 1) to assignment }
+                            .filter { (_, assignment) ->
+                                when (filter) {
+                                    AssignmentFilter.ALL -> true
+                                    AssignmentFilter.ONGOING -> !assignment.isClosed
+                                    AssignmentFilter.CLOSED -> assignment.isClosed
+                                }
+                            }
+
                         LazyColumn(
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(spacerPadding * 1.5f)
                         ) {
-                            itemsIndexed(state.assignments, key = { _, item -> item.id }) { index, assignment ->
+                            // 필터에 해당하는 과제가 없을 때
+                            if (filtered.isEmpty() && state.assignments.isNotEmpty()) {
+                                item {
+                                    InstructionText(
+                                        text = when (filter) {
+                                            AssignmentFilter.ONGOING -> "진행 중인 과제가 없어요!"
+                                            AssignmentFilter.CLOSED -> "마감된 과제가 없어요!"
+                                            AssignmentFilter.ALL -> "과제가 없어요!"
+                                        },
+                                        textStyle = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = spacerPadding * 2)
+                                    )
+                                }
+                            }
+
+                            items(filtered, key = { it.second.id }) { (number, assignment) ->
                                 AssignmentCard(
-                                    number = index + 1,
+                                    number = number,
                                     data = assignment,
                                     isTeacher = isTeacher,
                                     onStartClick = { startAssignmentId = it },
                                     onSubmissionClick = {
-                                        submissionNumber = index + 1
+                                        submissionNumber = number
                                         vm.openSubmissions(it)
                                     },
                                     isInProgress = state.resumables.containsKey(assignment.id),

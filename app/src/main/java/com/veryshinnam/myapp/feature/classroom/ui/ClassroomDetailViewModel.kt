@@ -65,10 +65,18 @@ class ClassroomDetailViewModel @Inject constructor(
                 emptyList()
             }
 
+            // 학생: 즐겨찾기한 캐릭터 카드를 보여주기 위해 학급 동화에서 관심 캐릭터만 골라냄 (실패해도 학급 화면은 보여줌)
+            val favorites = if (isTeacher) emptyList() else try {
+                repository.getStories(classroomId).filter { it.isFavorite }
+            } catch (e: Exception) {
+                emptyList()
+            }
+
             _uiState.value = ClassroomDetailUiState.Success(
                 isTeacher = isTeacher,
                 detail = detail,
-                assignments = assignments
+                assignments = assignments,
+                favorites = favorites
             )
         } catch (e: Exception) {
             val message = e.serverMessage("학급 정보를 불러오지 못했어요.")
