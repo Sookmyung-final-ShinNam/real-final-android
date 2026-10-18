@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -40,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -167,7 +172,6 @@ fun SettingsScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fillMaxHeight(0.66f)
                             .padding(horizontalPadding),
                         colors = CardDefaults.cardColors(
                             containerColor = Color.White
@@ -175,107 +179,110 @@ fun SettingsScreen(
                         shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(4.dp, colorResource(R.color.main_orange)),
                     ) {
+                        // 2열 x 3행 버튼 격자
                         Column(
                             modifier = Modifier
-                                .fillMaxSize()
+                                .fillMaxWidth()
                                 .padding(verticalPadding),
-                            verticalArrangement = Arrangement.SpaceAround
+                            verticalArrangement = Arrangement.spacedBy(verticalPadding)
                         ) {
-                            // 로그아웃 버튼
-                            CircleButton(
-                                enabled = isEnabled,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .alpha(if (isEnabled) 1f else 0f),
-                                onClick =  {
-                                    vm.showConfirmWarning(
-                                        warningText = "정말 로그아웃 하시겠어요?",
-                                        confirmText = "로그아웃 하기",
-                                        onConfirm = {
-                                            vm.logout()
-                                            vm.showWarning("로그아웃이 완료되었습니다.")
-                                        }
-                                    )
-                                },
-                                text = "로그아웃",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
-
-                            // 회원 탈퇴 버튼
-                            CircleButton(
-                                enabled = isEnabled,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .alpha(if (isEnabled) 1f else 0f),
-                                onClick =  {
-                                    vm.showConfirmWarning(
-                                        warningText =
-                                            "정말 탈퇴하시겠어요?\n\n" +
-                                                    "동화/캐릭터 정보를 제외한 사용자 관련 모든 정보가 삭제되며,\n" +
-                                                    "탈퇴 후 24시간 내에 재로그인시\n회원 탈퇴가 취소됩니다.",
-                                        confirmText = "회원 탈퇴 하기",
-                                        onConfirm = {
-                                            vm.withdraw()
-                                            vm.showWarning("회원 탈퇴가 완료되었습니다.")
-                                        }
-                                    )
-                                },
-                                text = "회원 탈퇴",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
-
-                            // 앱 사용 매뉴얼 버튼
-                            CircleButton(
+                            // 1행: 나의 학급 / 앱 사용 매뉴얼
+                            Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    vm.startManual()
-                                    onBack()
-                                },
-                                text = "앱 사용 설명 다시 보기",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
+                                horizontalArrangement = Arrangement.spacedBy(horizontalPadding)
+                            ) {
+                                // 나의 학급 (선생님/학생 분기는 학급 목록 화면에서 처리)
+                                SettingsGridButton(
+                                    text = "나의 학급",
+                                    onClick = onClassroomClick
+                                )
 
-                            // 개인정보방침
-                            CircleButton(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    isPrivacy = true
-                                },
-                                text = "개인정보처리 방침",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
-
-                            // 문의하기
-                            CircleButton(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    try {
-                                        val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                            data = Uri.parse("mailto:")
-                                            putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
-                                            putExtra(Intent.EXTRA_SUBJECT, subjectText)
-                                            putExtra(Intent.EXTRA_TEXT, bodyText)
-                                        }
-
-                                        // resolveActivity: 사용 가능한 메일 앱 체크
-                                        if (intent.resolveActivity(context.packageManager) != null) {
-                                            context.startActivity(Intent.createChooser(intent, "문의 메일 보내기"))
-                                        }
-                                    } catch (_: Exception) {
-                                        Toast.makeText(context, "메일을 보낼 수 있는 앱이 설치되어 있지 않습니다.", Toast.LENGTH_SHORT).show()
+                                // 앱 사용 매뉴얼 버튼
+                                SettingsGridButton(
+                                    text = "앱 사용 설명\n다시 보기",
+                                    onClick = {
+                                        vm.startManual()
+                                        onBack()
                                     }
-                                },
-                                text = "메일 보내기",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
+                                )
+                            }
 
-                            // 나의 학급 (선생님/학생 분기는 학급 목록 화면에서 처리)
-                            CircleButton(
+                            // 2행: 개인정보방침 / 문의하기
+                            Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = onClassroomClick,
-                                text = "나의 학급",
-                                contentPadding = PaddingValues(vertical = horizontalPadding)
-                            )
+                                horizontalArrangement = Arrangement.spacedBy(horizontalPadding)
+                            ) {
+                                // 개인정보방침
+                                SettingsGridButton(
+                                    text = "개인정보\n처리 방침",
+                                    onClick = { isPrivacy = true }
+                                )
+
+                                // 문의하기
+                                SettingsGridButton(
+                                    text = "메일 보내기",
+                                    onClick = {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                                data = Uri.parse("mailto:")
+                                                putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+                                                putExtra(Intent.EXTRA_SUBJECT, subjectText)
+                                                putExtra(Intent.EXTRA_TEXT, bodyText)
+                                            }
+
+                                            // resolveActivity: 사용 가능한 메일 앱 체크
+                                            if (intent.resolveActivity(context.packageManager) != null) {
+                                                context.startActivity(Intent.createChooser(intent, "문의 메일 보내기"))
+                                            }
+                                        } catch (_: Exception) {
+                                            Toast.makeText(context, "메일을 보낼 수 있는 앱이 설치되어 있지 않습니다.", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                )
+                            }
+
+                            // 3행: 로그아웃 / 회원 탈퇴 (리뷰 기간에는 숨김)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(horizontalPadding)
+                            ) {
+                                // 로그아웃 버튼
+                                SettingsGridButton(
+                                    text = "로그아웃",
+                                    enabled = isEnabled,
+                                    modifier = Modifier.alpha(if (isEnabled) 1f else 0f),
+                                    onClick = {
+                                        vm.showConfirmWarning(
+                                            warningText = "정말 로그아웃 하시겠어요?",
+                                            confirmText = "로그아웃 하기",
+                                            onConfirm = {
+                                                vm.logout()
+                                                vm.showWarning("로그아웃이 완료되었습니다.")
+                                            }
+                                        )
+                                    }
+                                )
+
+                                // 회원 탈퇴 버튼
+                                SettingsGridButton(
+                                    text = "회원 탈퇴",
+                                    enabled = isEnabled,
+                                    modifier = Modifier.alpha(if (isEnabled) 1f else 0f),
+                                    onClick = {
+                                        vm.showConfirmWarning(
+                                            warningText =
+                                                "정말 탈퇴하시겠어요?\n\n" +
+                                                        "동화/캐릭터 정보를 제외한 사용자 관련 모든 정보가 삭제되며,\n" +
+                                                        "탈퇴 후 24시간 내에 재로그인시\n회원 탈퇴가 취소됩니다.",
+                                            confirmText = "회원 탈퇴 하기",
+                                            onConfirm = {
+                                                vm.withdraw()
+                                                vm.showWarning("회원 탈퇴가 완료되었습니다.")
+                                            }
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
 
@@ -348,4 +355,26 @@ fun SettingsScreen(
             )
         }
     }
+}
+// 환경설정 격자 버튼 (한 행에 2개씩 같은 너비)
+@Composable
+private fun RowScope.SettingsGridButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    CircleButton(
+        onClick = onClick,
+        text = text,
+        enabled = enabled,
+        textStyle = MaterialTheme.typography.titleMedium.copy(
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        ),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+        modifier = modifier
+            .weight(1f)
+            .height(72.dp)
+    )
 }
