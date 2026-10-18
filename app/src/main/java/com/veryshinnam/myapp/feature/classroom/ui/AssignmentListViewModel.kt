@@ -6,6 +6,8 @@ import com.veryshinnam.myapp.core.network.serverMessage
 import com.veryshinnam.myapp.feature.classroom.data.repository.ClassroomRepository
 import com.veryshinnam.myapp.feature.classroom.model.AssignmentData
 import com.veryshinnam.myapp.feature.classroom.model.SubmissionData
+import com.veryshinnam.myapp.feature.creation.data.repository.ConversationRepository
+import com.veryshinnam.myapp.feature.creation.model.ResumeRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +24,9 @@ sealed interface AssignmentListUiState {
 
     data class Success(
         val classroomName: String,
-        val assignments: List<AssignmentData>
+        val assignments: List<AssignmentData>,
+        // 학생이 끝내지 않은 과제 (과제 아이디 > 이어하기 요청). 이어하기 버튼 표시에 사용
+        val resumables: Map<Long, ResumeRequest> = emptyMap()
     ) : AssignmentListUiState
 }
 
@@ -40,10 +44,12 @@ sealed interface SubmissionUiState {
 
 @HiltViewModel
 class AssignmentListViewModel @Inject constructor(
-    private val repository: ClassroomRepository
+    private val repository: ClassroomRepository,
+    private val conversationRepository: ConversationRepository
 ) : ViewModel() {
 
     private var classroomId: Long = -1L
+    private var isTeacher: Boolean = false
     private var submissionAssignmentId: Long = -1L
 
     // 화면 전체 ui 상태
@@ -67,8 +73,9 @@ class AssignmentListViewModel @Inject constructor(
     val toast: SharedFlow<String> = _toast.asSharedFlow()
 
     // 학급 이름 + 과제 목록 조회 (화면 진입 시, 과제 등록/동화 생성 후 복귀 시)
-    fun load(classroomId: Long) {
+    fun load(classroomId: Long, isTeacher: Boolean) {
         this.classroomId = classroomId
+        this.isTeacher = isTeacher
 
         // 이미 보여주는 목록이 있으면 로딩 화면 없이 갱신
         if (_uiState.value !is AssignmentListUiState.Success) {
@@ -80,9 +87,20 @@ class AssignmentListViewModel @Inject constructor(
                 val detail = repository.getClassroomDetail(classroomId)
                 val assignments = repository.getAssignments(classroomId)
 
+                // 학생: 끝내지 않은 과제는 이어하기로 표시 (조회에 실패해도 과제 목록은 보여줌)
+                val resumables = if (isTeacher) emptyMap() else try {
+                    conversationRepository.getInProgress()
+                        .filter { it.classroomId == classroomId && it.assignmentId != null }
+                        .asReversed() // 서버는 최신순 > 같은 과제가 여러 개면 가장 최근 세션이 남도록 뒤집어서 매핑
+                        .associate { it.assignmentId!! to it.toResumeRequest() }
+                } catch (e: Exception) {
+                    emptyMap()
+                }
+
                 _uiState.value = AssignmentListUiState.Success(
                     classroomName = detail.name,
-                    assignments = assignments
+                    assignments = assignments,
+                    resumables = resumables
                 )
             } catch (e: Exception) {
                 _uiState.value = AssignmentListUiState.Error(
@@ -93,7 +111,7 @@ class AssignmentListViewModel @Inject constructor(
     }
 
     // 다시 시도 (오류 화면)
-    fun retry() = load(classroomId)
+    fun retry() = load(classroomId, isTeacher)
 
     // --- 제출 현황 (선생님) ---
     // 제출 현황 시트 열기 + 조회

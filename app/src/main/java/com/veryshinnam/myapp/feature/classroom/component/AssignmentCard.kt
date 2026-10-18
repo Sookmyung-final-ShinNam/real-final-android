@@ -58,6 +58,8 @@ fun AssignmentCard(
     isTeacher: Boolean,
     onStartClick: (Long) -> Unit,
     onSubmissionClick: (Long) -> Unit = {},
+    isInProgress: Boolean = false,
+    onResumeClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val lightColor = colorResource(R.color.main_orange_50)
@@ -167,6 +169,7 @@ fun AssignmentCard(
             val buttonText = when {
                 isDone -> "진행 완료"
                 isBlocked -> "마감되어 시작할 수 없어요"
+                isInProgress -> "이어하기" // 만들던 동화가 있으면 이어서 진행 (학급 도토리 차감 없음)
                 else -> "동화 만들기"
             }
 
@@ -176,7 +179,13 @@ fun AssignmentCard(
                     .padding(top = 4.dp)
                     .clip(CircleShape)
                     .background(if (isEnabled) lightColor else lightColor.copy(alpha = 0.7f))
-                    .then(if (isEnabled) Modifier.clickable { onStartClick(data.id) } else Modifier)
+                    .then(
+                        if (isEnabled) {
+                            Modifier.clickable {
+                                if (isInProgress) onResumeClick(data.id) else onStartClick(data.id)
+                            }
+                        } else Modifier
+                    )
                     .semantics {
                         contentDescription = "${data.title} $buttonText"
                         role = Role.Button

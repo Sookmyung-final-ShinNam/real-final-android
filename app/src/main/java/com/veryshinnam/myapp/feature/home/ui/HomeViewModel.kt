@@ -8,6 +8,8 @@ import com.veryshinnam.myapp.common.model.WarningState
 import com.veryshinnam.myapp.core.manual.ManualManager
 import com.veryshinnam.myapp.core.session.ReviewToken.REVIEW_ACCESS_TOKEN
 import com.veryshinnam.myapp.core.session.SessionManager
+import com.veryshinnam.myapp.feature.creation.data.repository.ConversationRepository
+import com.veryshinnam.myapp.feature.creation.model.InProgressData
 import com.veryshinnam.myapp.feature.home.data.repository.HomeRepository
 import com.veryshinnam.myapp.feature.home.model.HomeRandomMessages
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,9 +25,14 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: HomeRepository,
+    private val conversationRepository: ConversationRepository,
     private val sessionManager: SessionManager,
     private val manualManager: ManualManager
 ) : ViewModel() {
+
+    // 이어서 만들 수 있는(끝내지 않은) 일반 동화 (null이면 선택창 닫힘)
+    private val _resumeCandidate = MutableStateFlow<InProgressData?>(null)
+    val resumeCandidate = _resumeCandidate.asStateFlow()
 
     // 화면 전체 ui 상태
     private val _homeUiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -76,6 +83,26 @@ class HomeViewModel @Inject constructor(
             sessionManager.removeNewUser()
             _isNewUser.value = false
         }
+    }
+
+    // 동화 만들기 버튼: 끝내지 않은 일반 동화가 있으면 이어하기 선택창, 없으면 onNone(새로 만들기 진행)
+    // (조회에 실패해도 새로 만들기를 막지 않음)
+    fun checkResume(onNone: () -> Unit) {
+        viewModelScope.launch {
+            val inProgress = try {
+                conversationRepository.getInProgress().firstOrNull { it.isPersonal } // 최신순 첫 번째
+            } catch (e: Exception) {
+                Log.e("HOME_RESUME", "진행 중인 동화 조회 실패: ${e.message}")
+                null
+            }
+
+            if (inProgress != null) _resumeCandidate.value = inProgress else onNone()
+        }
+    }
+
+    // 이어하기 선택창 닫기
+    fun dismissResume() {
+        _resumeCandidate.value = null
     }
 
     // 단순 경고창 열기

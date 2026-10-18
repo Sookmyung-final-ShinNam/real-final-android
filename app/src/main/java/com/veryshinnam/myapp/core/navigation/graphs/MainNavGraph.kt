@@ -9,6 +9,7 @@ import androidx.navigation.navigation
 import com.veryshinnam.myapp.core.navigation.routes.MainRoutes
 import com.veryshinnam.myapp.core.navigation.utils.navigateTo
 import com.veryshinnam.myapp.core.navigation.utils.navigateToHome
+import com.veryshinnam.myapp.core.navigation.utils.navigateToResume
 import com.veryshinnam.myapp.core.navigation.utils.resetToHome
 import com.veryshinnam.myapp.feature.admin.ui.AdminScreen
 import com.veryshinnam.myapp.feature.attendance.ui.AttendanceScreen
@@ -42,6 +43,7 @@ fun NavGraphBuilder.mainNavGraph(
                 onDashboardClick = { navController.navigate(MainRoutes.DASHBOARD) },
                 onCreationClick = { navController.navigate(NavGraphs.CREATION) },
                 onCollectionClick = { navController.navigate(MainRoutes.COLLECTION) },
+                onResumeClick = { request -> navController.navigateToResume(request) },
                 onCharacterClick = { charId ->
                     navController.navigate("character/$charId")
                 }
@@ -189,6 +191,7 @@ fun NavGraphBuilder.mainNavGraph(
                 onBack = { navController.popBackStack() },
                 onLogoClick = { navController.navigateToHome() },
                 onCreateAssignment = { navController.navigate("classroom_assignment_new/$classroomId") },
+                onResumeAssignment = { request -> navController.navigateToResume(request) },
                 onStartAssignment = { assignmentId ->
                     // 생성 플로우(선택 화면)가 이 값을 읽어 과제로 동화를 시작
                     navController.currentBackStackEntry

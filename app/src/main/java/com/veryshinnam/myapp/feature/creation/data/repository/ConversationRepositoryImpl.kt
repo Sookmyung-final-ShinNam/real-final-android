@@ -5,11 +5,14 @@ import com.veryshinnam.myapp.core.network.serverMessage
 import com.veryshinnam.myapp.feature.classroom.data.api.ClassroomApi
 import com.veryshinnam.myapp.feature.creation.data.api.ConversationApi
 import com.veryshinnam.myapp.feature.creation.data.dto.FeedbackResult
+import com.veryshinnam.myapp.feature.creation.data.dto.InProgressResult
+import com.veryshinnam.myapp.feature.creation.data.dto.toInProgressData
 import com.veryshinnam.myapp.feature.creation.data.dto.NextStepResult
 import com.veryshinnam.myapp.feature.creation.data.dto.StartRequest
 import com.veryshinnam.myapp.feature.creation.data.dto.StartResult
 import com.veryshinnam.myapp.feature.creation.data.dto.toFeedbackData
 import com.veryshinnam.myapp.feature.creation.model.FeedbackData
+import com.veryshinnam.myapp.feature.creation.model.InProgressData
 import javax.inject.Inject
 
 class ConversationRepositoryImpl @Inject constructor(
@@ -46,6 +49,17 @@ class ConversationRepositoryImpl @Inject constructor(
         }
 
         return response.result
+    }
+
+    // 진행 중인(끝내지 않은) 대화 세션 조회 (최신순)
+    override suspend fun getInProgress(): List<InProgressData> {
+        val response: BaseResponse<List<InProgressResult>> = api.getInProgress()
+
+        if (!response.isSuccess || response.result == null) {
+            throw Exception("진행 중인 대화 세션 조회 실패: ${response.message}")
+        }
+
+        return response.result.map { it.toInProgressData() }
     }
 
     // 다음 스텝에서 메시지 조회

@@ -37,6 +37,7 @@ import com.veryshinnam.myapp.feature.classroom.component.ClassroomHeader
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomLoading
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomScaffold
 import com.veryshinnam.myapp.feature.classroom.component.SubmissionSheet
+import com.veryshinnam.myapp.feature.creation.model.ResumeRequest
 
 /**
  * 학급 과제 화면
@@ -58,6 +59,7 @@ fun AssignmentListScreen(
     onLogoClick: () -> Unit,
     onCreateAssignment: () -> Unit,
     onStartAssignment: (assignmentId: Long) -> Unit,
+    onResumeAssignment: (ResumeRequest) -> Unit,
     spacerPadding: Dp = 10.dp,
     horizontalPadding: Dp = 16.dp,
     vm: AssignmentListViewModel = hiltViewModel()
@@ -82,7 +84,7 @@ fun AssignmentListScreen(
     }
 
     // 화면 진입 시 조회 (동화 생성/과제 등록 후 돌아올 때도 제출 여부 갱신)
-    LaunchedEffect(classroomId) { vm.load(classroomId) }
+    LaunchedEffect(classroomId) { vm.load(classroomId, isTeacher) }
 
     // 토스트 이벤트
     LaunchedEffect(Unit) {
@@ -138,7 +140,9 @@ fun AssignmentListScreen(
                                     onSubmissionClick = {
                                         submissionNumber = index + 1
                                         vm.openSubmissions(it)
-                                    }
+                                    },
+                                    isInProgress = state.resumables.containsKey(assignment.id),
+                                    onResumeClick = { id -> state.resumables[id]?.let(onResumeAssignment) }
                                 )
                             }
 

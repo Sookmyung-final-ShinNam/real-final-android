@@ -18,6 +18,7 @@ import com.veryshinnam.myapp.feature.creation.model.ConversationStep
 import com.veryshinnam.myapp.feature.creation.model.FeedbackData
 import com.veryshinnam.myapp.feature.creation.model.ManualScriptData
 import com.veryshinnam.myapp.feature.creation.model.QuestionData
+import com.veryshinnam.myapp.feature.creation.model.ResumeRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -105,6 +106,30 @@ class ConversationViewModel @Inject constructor(
                 _conversationUiState.value = ConversationUiState.Error(e.message ?: "Unknown error")
             }
         }
+    }
+
+    // 이어하기: 끝내지 않은 세션을 그 단계(기/승/전/결)부터 다시 진행
+    // - 서버에는 진행 상태가 저장돼 있으므로 새 세션을 만들지 않고(도토리 차감 없음),
+    //   시작 화면 > 다음 버튼 > 해당 단계의 이야기/질문 조회(next-step) 순서로 이어감
+    fun resumeConversation(request: ResumeRequest) {
+        val loopStep = when (request.currentStep) {
+            "승" -> 2
+            "전" -> 3
+            "결" -> 4
+            else -> 1 // START, 기
+        }
+        val name = request.characterName?.takeIf { it.isNotBlank() }
+
+        _conversationUiState.value = ConversationUiState.Success(
+            sessionId = request.sessionId,
+            story = (if (name != null) "${name}의 동화를 이어서 만들어요!" else "만들던 동화를 이어서 만들어요!") +
+                    "\n준비되면 다음 버튼을 눌러 주세요.",
+            questionData = QuestionData(messageId = -1, question = ""),
+            answerData = AnswerData(userAnswer = "", partialAnswer = ""),
+            feedbackData = FeedbackData(isPositive = false, text = ""),
+            conversationStep = ConversationStep.START, // 다음 버튼 > 해당 단계 이야기 조회
+            loopStep = loopStep
+        )
     }
 
     // 다음 단계 진행

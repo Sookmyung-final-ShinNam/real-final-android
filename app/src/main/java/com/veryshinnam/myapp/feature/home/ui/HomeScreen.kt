@@ -52,7 +52,9 @@ import com.veryshinnam.myapp.common.component.LoadErrorView
 import com.veryshinnam.myapp.feature.home.component.HomeBottomButtons
 import com.veryshinnam.myapp.feature.home.component.HomeFavoriteCarousel
 import com.veryshinnam.myapp.common.component.UserItem
+import com.veryshinnam.myapp.common.component.ResumeChoiceSheet
 import com.veryshinnam.myapp.common.component.WarningSheet
+import com.veryshinnam.myapp.feature.creation.model.ResumeRequest
 import com.veryshinnam.myapp.common.model.ManualState
 import com.veryshinnam.myapp.core.orientation.OrientationManager
 import com.veryshinnam.myapp.feature.attendance.component.AttendanceReward
@@ -67,6 +69,7 @@ import com.veryshinnam.myapp.feature.attendance.component.AttendanceReward
  * - onDashboardClick: 버튼 클릭 시, 대시보드 화면(DashboardScreen)으로 이동
  * - onCreationClick: 버튼 클릭 시, 캐릭터 및 동화 생성 플로우 진행
  * - onCollectionClick: 버튼 클릭 시, 보관함 화면(CollectionScreen)으로 이동
+ * - onResumeClick: 이어하기 선택 시, 끝내지 않은 동화를 이어서 진행
  */
 @Composable
 fun HomeScreen(
@@ -76,6 +79,7 @@ fun HomeScreen(
     onDashboardClick: () -> Unit,       // 바텀 버튼
     onCreationClick: () -> Unit,        // 바텀 버튼
     onCollectionClick: () -> Unit,      // 바텀 버튼
+    onResumeClick: (ResumeRequest) -> Unit, // 끝내지 않은 동화 이어하기
     messageBorder: Dp = 4.dp,
     messageCorner: Dp = 16.dp,
     messagePadding: Dp = 20.dp,
@@ -94,6 +98,7 @@ fun HomeScreen(
     val manualStep by vm.manualStep.collectAsStateWithLifecycle()
     val manualIndex by vm.manualIndex.collectAsStateWithLifecycle()
     val username by vm.username.collectAsStateWithLifecycle()
+    val resumeCandidate by vm.resumeCandidate.collectAsStateWithLifecycle() // 이어하기 가능한 동화
 
     // -- ui 변수
     // 이미지 높이: 기기 높이 * 0.12
@@ -335,8 +340,11 @@ fun HomeScreen(
                                 HomeBottomButtons(
                                     onDashboardClick = onDashboardClick,
                                     onCreationClick = {
-                                        if (points > 0) onCreationClick()
-                                        else vm.showWarning("도토리가 부족해요.\n출석을 통해 도토리를 모아 볼까요?")
+                                        // 끝내지 않은 동화가 있으면 이어하기 선택창, 없으면 바로 새로 만들기
+                                        vm.checkResume {
+                                            if (points > 0) onCreationClick()
+                                            else vm.showWarning("도토리가 부족해요.\n출석을 통해 도토리를 모아 볼까요?")
+                                        }
                                     },
                                     onCollectionClick = onCollectionClick,
                                     onDashboardRect = { rect ->
@@ -517,6 +525,29 @@ fun HomeScreen(
         WarningSheet(
             warningText = warningState.warningText,
             onDismiss = { vm.hideWarning() }
+        )
+    }
+
+    // 이어하기 선택: 끝내지 않은 동화가 있는 경우 (이어하기는 도토리를 쓰지 않음)
+    resumeCandidate?.let { inProgress ->
+        val name = inProgress.characterName?.takeIf { it.isNotBlank() }
+
+        ResumeChoiceSheet(
+            message = (if (name != null) "${name}의 동화를 만들던 중이었어요!" else "만들던 동화가 있어요!") +
+                    "\n이어서 만들까요?\n(이어서 만들면 도토리를 쓰지 않아요)",
+            resumeText = "이어서 만들기",
+            newText = "새로 만들기 (도토리 1개 사용)",
+            onResume = {
+                vm.dismissResume()
+                onResumeClick(inProgress.toResumeRequest())
+            },
+            onNew = {
+                vm.dismissResume()
+                val currentPoints = (uiState as? HomeUiState.Success)?.homeData?.points ?: 0
+                if (currentPoints > 0) onCreationClick()
+                else vm.showWarning("도토리가 부족해요.\n출석을 통해 도토리를 모아 볼까요?")
+            },
+            onDismiss = { vm.dismissResume() }
         )
     }
 
