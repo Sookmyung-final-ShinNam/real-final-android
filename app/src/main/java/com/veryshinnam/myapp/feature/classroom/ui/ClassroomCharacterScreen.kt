@@ -22,6 +22,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -225,23 +226,26 @@ fun ClassroomCharacterScreen(
                                         .fillMaxWidth()
                                         .clearAndSetSemantics { }
                                 )
-
-                                // 만든 사용자 닉네임
-                                if (!character.creatorName.isNullOrBlank()) {
-                                    Text(
-                                        text = "made by ${character.creatorName}",
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = colorResource(R.color.main_orange_shade),
-                                            textAlign = TextAlign.End
-                                        ),
-                                        maxLines = 1,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
                             }
                         }
                     }
+                }
+
+                // 만든 사용자 닉네임
+                if (!character.creatorName.isNullOrBlank()) {
+                    Text(
+                        text = "made by ${character.creatorName}",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = colorResource(R.color.main_orange_shade),
+                            textAlign = TextAlign.End
+                        ),
+                        maxLines = 1,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(WindowInsets.navigationBars.asPaddingValues()) // 내비 바 영역만큼
+                            .padding(end = 24.dp)
+                    )
                 }
             }
         }

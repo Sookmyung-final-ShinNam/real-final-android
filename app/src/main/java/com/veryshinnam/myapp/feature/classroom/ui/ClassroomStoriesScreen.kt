@@ -113,7 +113,7 @@ fun ClassroomStoriesScreen(
                         screenText = "학급 동화 설명:",
                         cardColor = colorResource(R.color.blue_gray),
                         cardText = if (topic != null) {
-                            "선택한 과제의 주제는 '$topic'입니다.\n다른 친구들의 작품도 확인해 보세요!"
+                            "선택한 과제의 주제는\n ${topic}입니다.\n다른 친구들의 작품도 확인해 보세요!"
                         } else {
                             "우리 반 친구들이 만든 동화예요.\n좋아하는 캐릭터는 별 모양으로 5명까지 표시할 수 있어요!"
                         },
