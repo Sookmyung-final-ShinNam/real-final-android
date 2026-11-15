@@ -2,7 +2,6 @@ package com.veryshinnam.myapp.feature.classroom.ui
 
 import android.content.pm.ActivityInfo
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,11 +28,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -43,16 +43,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.veryshinnam.myapp.R
 import com.veryshinnam.myapp.common.component.LoadErrorView
 import com.veryshinnam.myapp.common.component.WarningSheet
+import com.veryshinnam.myapp.common.model.ImageType
 import com.veryshinnam.myapp.core.orientation.OrientationManager
+import com.veryshinnam.myapp.feature.classroom.component.ClassroomCollectionButton
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomHeader
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomLoading
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomScaffold
 import com.veryshinnam.myapp.feature.classroom.component.ClassroomSquareButton
-import com.veryshinnam.myapp.feature.classroom.component.ClassroomCollectionButton
+import com.veryshinnam.myapp.feature.classroom.component.StudentRow
 import com.veryshinnam.myapp.feature.home.component.HomeFavoriteCarousel
 import com.veryshinnam.myapp.feature.home.model.FavoriteData
-import com.veryshinnam.myapp.common.model.ImageType
-import com.veryshinnam.myapp.feature.classroom.component.StudentRow
+
 
 /**
  * 학급 화면 (메뉴 허브)
@@ -144,7 +145,14 @@ fun ClassroomDetailScreen(
                                 .weight(1f)
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(colorResource(R.color.main_orange))
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            colorResource(R.color.main_orange),
+                                            colorResource(R.color.dark_orange)
+                                        )
+                                    )
+                                )
                                 .padding(12.dp)
                         ) {
                             Text(
@@ -158,7 +166,9 @@ fun ClassroomDetailScreen(
                             )
 
                             if (detail.students.isEmpty()) {
-                                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                Box(Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth(), contentAlignment = Alignment.Center) {
                                     Text(
                                         text = "아직 가입한 학생이 없어요.\n학급 코드를 학생들에게 알려 주세요!",
                                         style = MaterialTheme.typography.bodyLarge.copy(
@@ -192,19 +202,23 @@ fun ClassroomDetailScreen(
                                 .padding(bottom = spacerPadding * 1.5f),
                             horizontalArrangement = Arrangement.spacedBy(spacerPadding)
                         ) {
-                            // 보관함 (홈 화면의 보관함 아이콘)
                             ClassroomCollectionButton(
-                                onClick = onStoriesClick,
-                                modifier = Modifier.weight(1f).aspectRatio(1f)
-                            )
-                            ClassroomSquareButton(
-                                text = "학급 도토리\n충전",
+                                imageRes = R.drawable.img_dotory_charge,
+                                description = "학급 도토리 충전",
                                 onClick = { vm.chargeAcorn() },
                                 modifier = Modifier.weight(1f).aspectRatio(1f)
                             )
-                            ClassroomSquareButton(
-                                text = "과제 관리",
+                            ClassroomCollectionButton(
+                                imageRes = R.drawable.img_assignment_creation,
+                                description = "학급 과제 관리",
                                 onClick = onAssignmentsClick,
+                                modifier = Modifier.weight(1f).aspectRatio(1f)
+                            )
+                            // 보관함 (홈 화면의 보관함 아이콘)
+                            ClassroomCollectionButton(
+                                imageRes = R.drawable.img_bottom_collection,
+                                description= "학급 보관함",
+                                onClick = onStoriesClick,
                                 modifier = Modifier.weight(1f).aspectRatio(1f)
                             )
                         }
@@ -217,6 +231,18 @@ fun ClassroomDetailScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxWidth()
+                                .layout { measurable, constraints ->
+                                    // 부모 Column의 좌우 패딩만큼 폭을 넓혀서 측정
+                                    val extra = (horizontalPadding * 2).roundToPx()
+                                    val fullWidth = constraints.maxWidth + extra
+                                    val placeable = measurable.measure(
+                                        constraints.copy(minWidth = fullWidth, maxWidth = fullWidth)
+                                    )
+                                    // 자리는 원래 폭만큼 차지하고, 왼쪽 패딩만큼 당겨서 배치
+                                    layout(constraints.maxWidth, placeable.height) {
+                                        placeable.place(-extra / 2, 0)
+                                    }
+                                }
                                 .padding(vertical = spacerPadding)
                         ) {
                             HomeFavoriteCarousel(
@@ -245,14 +271,17 @@ fun ClassroomDetailScreen(
                                 .padding(bottom = spacerPadding),
                             horizontalArrangement = Arrangement.spacedBy(spacerPadding)
                         ) {
-                            ClassroomSquareButton(
-                                text = "과제\n보기",
+                            ClassroomCollectionButton(
+                                imageRes = R.drawable.img_assignment_creation,
+                                description= "과제 관리",
                                 onClick = onAssignmentsClick,
                                 modifier = Modifier.weight(1f).aspectRatio(1f)
                             )
 
                             // 보관함 (홈 화면의 보관함 아이콘)
                             ClassroomCollectionButton(
+                                imageRes = R.drawable.img_bottom_collection,
+                                description= "학급 보관함",
                                 onClick = onStoriesClick,
                                 modifier = Modifier.weight(1f).aspectRatio(1f)
                             )

@@ -1,7 +1,9 @@
 package com.veryshinnam.myapp.feature.classroom.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
@@ -36,11 +39,12 @@ import androidx.compose.ui.unit.dp
 import com.veryshinnam.myapp.R
 
 /**
- * 주황 채움 메뉴 카드
+ * 주황 그라데이션 메뉴 카드
  * : 왼쪽 흰색 동그라미 아이콘 + 흰색 글씨 (학급 목록, 새 학급/과제 추가 카드에서 사용)
+ *   CircleButton 과 같은 스타일 (main_orange → dark_orange 세로 그라데이션 + main_orange 테두리)
  *
  * - title: 카드 제목
- * - subtitle: 제목 아래 보조 문구 (선택)
+ * - subtitle: 제목 아래 보조 문구 (선택, 최대 2줄)
  * - icon: 동그라미 안 아이콘 (학급: School, 추가: Add)
  * - description: 접근성 설명 (없으면 title + subtitle)
  * - onClick: 카드 클릭 시
@@ -52,14 +56,19 @@ fun ClassroomMenuCard(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     icon: ImageVector = Icons.Filled.School,
-    description: String = title + (subtitle?.let { ", $it" } ?: ""),
+    description: String = title + (subtitle?.let { ", ${it.replace("\n", ", ")}" } ?: ""),
+    topColor: Color = colorResource(R.color.main_orange),
+    bottomColor: Color = colorResource(R.color.dark_orange),
     trailing: (@Composable () -> Unit)? = null
 ) {
+    val shape = RoundedCornerShape(16.dp)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(colorResource(R.color.main_orange)),
+            .clip(shape)
+            .background(Brush.verticalGradient(listOf(topColor, bottomColor)), shape)
+            .border(width = 2.dp, color = topColor, shape = shape),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 클릭 영역 (trailing은 따로 클릭되도록 제외)
@@ -85,7 +94,7 @@ fun ClassroomMenuCard(
                 Icon(
                     imageVector = icon,
                     contentDescription = null, // 장식용
-                    tint = colorResource(R.color.main_orange),
+                    tint = topColor,
                     modifier = Modifier.size(30.dp)
                 )
             }
@@ -97,7 +106,7 @@ fun ClassroomMenuCard(
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     ),
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 if (subtitle != null) {
@@ -107,7 +116,7 @@ fun ClassroomMenuCard(
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White.copy(alpha = 0.9f)
                         ),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -172,17 +181,19 @@ fun ClassroomSquareButton(
  */
 @Composable
 fun ClassroomCollectionButton(
+    @DrawableRes imageRes: Int,
+    description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Image(
-        painter = painterResource(R.drawable.img_bottom_collection),
+        painter = painterResource(imageRes),
         contentDescription = null, // 대체 텍스트는 아래 semantics에서 설정
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .semantics {
-                contentDescription = "학급 보관함"
+                contentDescription = description
                 role = Role.Button
             }
     )

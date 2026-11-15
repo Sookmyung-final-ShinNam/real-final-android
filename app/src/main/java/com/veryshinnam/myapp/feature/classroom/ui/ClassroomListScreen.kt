@@ -3,6 +3,7 @@ package com.veryshinnam.myapp.feature.classroom.ui
 import android.content.pm.ActivityInfo
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -155,7 +156,7 @@ fun ClassroomListScreen(
                             ClassroomMenuCard(
                                 title = classroom.name,
                                 subtitle = when {
-                                    isTeacher -> "학급 코드 ${classroom.code} · 학생 ${classroom.studentCount}명"
+                                    isTeacher -> "학급 코드 ${classroom.code}\n학생 ${classroom.studentCount}명"
                                     isPending -> "승인 대기 중"
                                     else -> "학생 ${classroom.studentCount}명"
                                 },
@@ -172,13 +173,12 @@ fun ClassroomListScreen(
                                     if (isTeacher) {
                                         Text(
                                             text = "복사",
-                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.White
-                                            ),
-                                            modifier = Modifier
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                fontWeight = FontWeight.Bold
+                                            ),modifier = Modifier
                                                 .padding(end = 12.dp)
-                                                .background(Color.White.copy(alpha = 0.25f), CircleShape)
+                                                .background(colorResource(R.color.lemon_yellow), CircleShape)
+                                                .border(2.dp, colorResource(R.color.main_orange), CircleShape)
                                                 .clickable {
                                                     copyToClipboard(classroom.code)
                                                     Toast.makeText(context, "학급 코드를 복사했어요.", Toast.LENGTH_SHORT).show()
