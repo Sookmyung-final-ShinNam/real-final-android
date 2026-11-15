@@ -211,13 +211,49 @@ fun SettingsScreen(
                                             putExtra(Intent.EXTRA_SUBJECT, subjectText)
                                             putExtra(Intent.EXTRA_TEXT, bodyText)
                                         }
+                                    }
+                                )
+                            }
 
-                                        // resolveActivity: 사용 가능한 메일 앱 체크
-                                        if (intent.resolveActivity(context.packageManager) != null) {
-                                            context.startActivity(Intent.createChooser(intent, "문의 메일 보내기"))
-                                        }
-                                    } catch (_: Exception) {
-                                        Toast.makeText(context, "메일을 보낼 수 있는 앱이 설치되어 있지 않습니다.", Toast.LENGTH_SHORT).show()
+                            // 3행: 로그아웃 / 회원 탈퇴 (리뷰 기간에는 숨김)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(horizontalPadding)
+                            ) {
+                                // 로그아웃 버튼
+                                SettingsGridButton(
+                                    text = "로그아웃",
+                                    enabled = isEnabled,
+                                    modifier = Modifier.alpha(if (isEnabled) 1f else 0f),
+                                    onClick = {
+                                        vm.showConfirmWarning(
+                                            warningText = "정말 로그아웃 하시겠어요?",
+                                            confirmText = "로그아웃 하기",
+                                            onConfirm = {
+                                                vm.logout()
+                                                vm.showWarning("로그아웃이 완료되었습니다.")
+                                            }
+                                        )
+                                    }
+                                )
+
+                                // 회원 탈퇴 버튼
+                                SettingsGridButton(
+                                    text = "회원 탈퇴",
+                                    enabled = isEnabled,
+                                    modifier = Modifier.alpha(if (isEnabled) 1f else 0f),
+                                    onClick = {
+                                        vm.showConfirmWarning(
+                                            warningText =
+                                                "정말 탈퇴하시겠어요?\n\n" +
+                                                        "동화/캐릭터 정보를 제외한 사용자 관련 모든 정보가 삭제되며,\n" +
+                                                        "탈퇴 후 24시간 내에 재로그인시\n회원 탈퇴가 취소됩니다.",
+                                            confirmText = "회원 탈퇴 하기",
+                                            onConfirm = {
+                                                vm.withdraw()
+                                                vm.showWarning("회원 탈퇴가 완료되었습니다.")
+                                            }
+                                        )
                                     }
                                 }
                             )
